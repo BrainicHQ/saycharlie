@@ -13,20 +13,22 @@
         <!-- Display category buttons -->
         {% for button in buttons %}
             {% if button.isCategory %}
-                <button onclick="toggleCategory('{{ button.label }}')"
-                        class="glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
-                <!-- Display buttons within each category (hidden by default) -->
-                <div id="category_{{ button.label }}_buttons" style="display:none;">
+                <button data-category-label="{{ button.label }}"
+                        class="category-button button_{{ button.encoded_label }} glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+                <!-- Display buttons within each category (hidden by default) with button label as the category name -->
+                <div id="category_{{ button.encoded_label }}_buttons" style="display: none;">
+                    <!-- Add back button for navigation -->
+                    <div class="mb-4"> <!-- Add margin-bottom to separate it from other buttons -->
+                        <button onclick="window.location.href='/'"
+                                class="glass-button bg-gray-500 text-white text-lg font-semibold p-2 rounded-md">< Back
+                        </button>
+                    </div>
                     {% for sub_button in buttons %}
                         {% if sub_button.category == button.label and not sub_button.isCategory %}
                             <button onclick="window.location.href='{{ sub_button.action }}'"
                                     class="glass-button bg-[{{ sub_button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ sub_button.label }}</button>
                         {% endif %}
                     {% endfor %}
-                    <!-- Add back button for navigation -->
-                    <button onclick="toggleCategory('{{ button.label }}')"
-                            class="glass-button bg-gray-500 text-white text-lg font-semibold p-2 rounded-md">Back
-                    </button>
                 </div>
             {% endif %}
         {% endfor %}
@@ -34,7 +36,7 @@
         {% for button in buttons %}
             {% if not button.isCategory and not button.category %}
                 <button onclick="window.location.href='{{ button.action }}'"
-                        class="glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+                        class="standalone-button glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
             {% endif %}
         {% endfor %}
     </div>
@@ -56,8 +58,39 @@
     </footer>
 </div>
 <script>
+    // Add event listeners to all category buttons
+    document.querySelectorAll('.category-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const categoryLabel = this.dataset.categoryLabel;
+            toggleCategory(categoryLabel);
+            // hide this button
+            this.style.display = 'none';
+            // hide all other non-category buttons
+            document.querySelectorAll('.standalone-button').forEach(standaloneButton => {
+                standaloneButton.style.display = 'none';
+            });
+        });
+    });
+
+    document.querySelectorAll('.backbutton').forEach(button => {
+        button.addEventListener('click', function () {
+            const categoryLabel = this.dataset.categoryLabel;
+            toggleCategory(categoryLabel);
+            // hide this button
+            this.style.display = 'none';
+            // hide all other non-category buttons
+            document.querySelectorAll('.standalone-button').forEach(standaloneButton => {
+                standaloneButton.style.display = 'none';
+            });
+        });
+    });
+
+    // Function to toggle category buttons
     function toggleCategory(categoryLabel) {
-        const categoryButtons = document.getElementById('category_' + categoryLabel + '_buttons');
+        const encodedLabel = encodeURIComponent(categoryLabel);
+        const categoryButtons = document.getElementById('category_' + encodedLabel + '_buttons');
+
+        // Toggle the display of the category buttons when the category button is clicked
         if (categoryButtons.style.display === 'none') {
             categoryButtons.style.display = 'block';
         } else {
@@ -65,6 +98,7 @@
         }
     }
 </script>
+
 <script>
     const meter = document.getElementById("meter");
     const dBLabel = document.getElementById("dBLabel");
