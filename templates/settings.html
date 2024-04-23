@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Settings</h1>
+
+        <!-- Form for adding buttons -->
+        <form method="POST" action="/add_button">
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2" for="label">Button Label:</label>
+                <input type="text" id="label" name="label" required class="border border-gray-300 rounded-md p-2 w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2" for="action">Button Action:</label>
+                <input type="text" id="action" name="action" required class="border border-gray-300 rounded-md p-2 w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2" for="color">Button Color:</label>
+                <input type="color" id="color" name="color" value="#ffffff">
+            </div>
+            <button type="submit" class="glass-button bg-blue-500 text-white text-lg font-semibold p-2 rounded-md">Save Button</button>
+        </form>
+
+        <!-- Form for adjusting the number of columns -->
+        <form method="POST" action="/set_columns">
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2" for="columns">Number of Columns:</label>
+                <input type="number" id="columns" name="columns" value="{{ columns }}" min="1" max="5" class="border border-gray-300 rounded-md p-2 w-full">
+            </div>
+            <button type="submit" class="glass-button bg-blue-500 text-white text-lg font-semibold p-2 rounded-md">Save Columns</button>
+        </form>
+    </div>
+</body>
+</html>
