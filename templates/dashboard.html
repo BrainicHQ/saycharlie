@@ -1,19 +1,28 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
-
+{% block extra_head %}
+    <!-- Include Kioskboard script -->
+    <script src="https://cdn.jsdelivr.net/npm/kioskboard@2.3.0/dist/kioskboard-aio-2.3.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/kioskboard@2.3.0/dist/kioskboard-2.3.0.min.css" rel="stylesheet">
+{% endblock %}
 {% block content %}
+    <!-- An example of a textarea element: The keyboard type is "all", the placement is "top", and the availability of the special characters is "true". -->
+    <textarea class="js-kioskboard-input" data-kioskboard-type="keyboard" data-kioskboard-placement="bottom"
+              data-kioskboard-specialcharacters="false" placeholder="Your Address"></textarea>
+
     <!-- Display category buttons -->
     {% for button in buttons %}
         {% if button.isCategory %}
             <a href="category?name={{ button.encoded_label }}" data-category-label="{{ button.label }}"
-                class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</a>
+               class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</a>
         {% endif %}
     {% endfor %}
     <!-- Display standalone buttons -->
     {% for button in buttons %}
         {% if not button.isCategory and not button.category %}
             <button onclick="window.location.href='{{ button.action }}'"
-                class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+                    class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
         {% endif %}
     {% endfor %}
+    <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
 {% endblock %}
