@@ -14,6 +14,19 @@ def dashboard():
                            columns=settings_data['columns'], app_background=settings_data['app_background'])
 
 
+def category(category_name):
+    settings_data = load_settings()
+    category_data = settings_data['buttons']
+    buttons_in_category = []
+    # if button label is equal to category name, return buttons in that category
+    for button in category_data:
+        if 'category' in button and button['category'] == category_name:
+            buttons_in_category.append(button)
+    return render_template('category.html', app_background=settings_data['app_background'],
+                           columns=settings_data['columns'],
+                           buttons_in_category=buttons_in_category)
+
+
 def add_button():
     if request.method == 'POST':
         settings_data = load_settings()

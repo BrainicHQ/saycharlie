@@ -1,5 +1,5 @@
-from flask import Flask
-from routes import dashboard, add_button, set_columns, app_background, settings
+from flask import Flask, request
+from routes import dashboard, add_button, set_columns, app_background, settings, category
 
 app = Flask(__name__)
 
@@ -28,6 +28,12 @@ def app_background_route():
 @app.route('/settings', methods=['GET'])
 def settings_route():
     return settings()
+
+
+@app.route('/category', methods=['GET'])
+def category_route():
+    category_name = request.args.get('name')
+    return category(category_name)
 
 
 if __name__ == '__main__':

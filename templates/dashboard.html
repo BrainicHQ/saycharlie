@@ -1,145 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-[{{ app_background }}]">
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-    <div class="grid grid-cols-{{ columns }} gap-4">
-        <!-- Display category buttons -->
-        {% for button in buttons %}
-            {% if button.isCategory %}
-                <button data-category-label="{{ button.label }}"
-                        class="category-button button_{{ button.encoded_label }} glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
-                <!-- Display buttons within each category (hidden by default) with button label as the category name -->
-                <div id="category_{{ button.encoded_label }}_buttons" style="display: none;">
-                    <!-- Add back button for navigation -->
-                    <div class="mb-4"> <!-- Add margin-bottom to separate it from other buttons -->
-                        <button onclick="window.location.href='/'"
-                                class="glass-button bg-gray-500 text-white text-lg font-semibold p-2 rounded-md">< Back
-                        </button>
-                    </div>
-                    {% for sub_button in buttons %}
-                        {% if sub_button.category == button.label and not sub_button.isCategory %}
-                            <button onclick="window.location.href='{{ sub_button.action }}'"
-                                    class="glass-button bg-[{{ sub_button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ sub_button.label }}</button>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endfor %}
-        <!-- Display standalone buttons -->
-        {% for button in buttons %}
-            {% if not button.isCategory and not button.category %}
-                <button onclick="window.location.href='{{ button.action }}'"
-                        class="standalone-button glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
-            {% endif %}
-        {% endfor %}
-    </div>
-    <footer>
-        <div class="mt-8">
-            <button id="startButton" class="bg-blue-500 text-white px-4 py-2 rounded-md">Start Measuring</button>
-            <br>
-            <div class="grid grid-cols-2 gap-4 mt-4">
-                <div class="relative">
-                    <meter id="meter" high="0.25" max="0.2" value="0"
-                           class="w-full h-12 bg-accent text-white rounded-md"
-                           low="0.15" optimum="0.5"></meter>
-                    <div id="dBLabel"
-                         class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs text-gray-500">
-                        0 dB
-                    </div>
-                </div>
-            </div>
-    </footer>
-</div>
-<script>
-    // Add event listeners to all category buttons
-    document.querySelectorAll('.category-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const categoryLabel = this.dataset.categoryLabel;
-            toggleCategory(categoryLabel);
-            // hide this button
-            this.style.display = 'none';
-            // hide all other non-category buttons
-            document.querySelectorAll('.standalone-button').forEach(standaloneButton => {
-                standaloneButton.style.display = 'none';
-            });
-        });
-    });
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
 
-    document.querySelectorAll('.backbutton').forEach(button => {
-        button.addEventListener('click', function () {
-            const categoryLabel = this.dataset.categoryLabel;
-            toggleCategory(categoryLabel);
-            // hide this button
-            this.style.display = 'none';
-            // hide all other non-category buttons
-            document.querySelectorAll('.standalone-button').forEach(standaloneButton => {
-                standaloneButton.style.display = 'none';
-            });
-        });
-    });
-
-    // Function to toggle category buttons
-    function toggleCategory(categoryLabel) {
-        const encodedLabel = encodeURIComponent(categoryLabel);
-        const categoryButtons = document.getElementById('category_' + encodedLabel + '_buttons');
-
-        // Toggle the display of the category buttons when the category button is clicked
-        if (categoryButtons.style.display === 'none') {
-            categoryButtons.style.display = 'block';
-        } else {
-            categoryButtons.style.display = 'none';
-        }
-    }
-</script>
-
-<script>
-    const meter = document.getElementById("meter");
-    const dBLabel = document.getElementById("dBLabel");
-    const startButtonEl = document.getElementById("startButton");
-
-    startButtonEl.onclick = async () => {
-        startButtonEl.disabled = true;
-
-        const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-        const context = new AudioContext();
-        const mediaStreamAudioSourceNode = context.createMediaStreamSource(stream);
-        const analyser = context.createAnalyser();
-
-        mediaStreamAudioSourceNode.connect(analyser);
-
-        const pcmData = new Float32Array(analyser.fftSize);
-
-        const onFrame = () => {
-            analyser.getFloatTimeDomainData(pcmData);
-
-            let sum = 0.0;
-            for (const amplitude of pcmData) {
-                sum += amplitude * amplitude;
-            }
-
-            // Calculate RMS (Root Mean Square) level in dB
-            const rms = Math.sqrt(sum / pcmData.length);
-            const dBLevel = 20 * Math.log10(rms);
-
-            // Scale the dB level to fit within a narrower range of the meter's scale
-            // Update meter value
-            meter.value = Math.max(0, Math.min(1, (dBLevel + 30) / 20 * 0.25));
-
-            // Update dB label text
-            dBLabel.textContent = `${dBLevel.toFixed(2)} dB`;
-
-            window.requestAnimationFrame(onFrame);
-        };
-
-        window.requestAnimationFrame(onFrame);
-    };
-</script>
-</body>
-</html>
+{% block content %}
+    <!-- Display category buttons -->
+    {% for button in buttons %}
+        {% if button.isCategory %}
+            <a href="category?name={{ button.encoded_label }}" data-category-label="{{ button.label }}"
+                class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</a>
+        {% endif %}
+    {% endfor %}
+    <!-- Display standalone buttons -->
+    {% for button in buttons %}
+        {% if not button.isCategory and not button.category %}
+            <button onclick="window.location.href='{{ button.action }}'"
+                class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
