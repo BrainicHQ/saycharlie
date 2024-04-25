@@ -1,9 +1,7 @@
 // Initialize Kioskboard
 KioskBoard.init({
     // Define the keys for DTMF tones
-    keysArrayOfObjects: [{"0": "1", "1": "2", "2": "3"}, {"0": "4", "1": "5", "2": "6"}, {
-        "0": "7", "1": "8", "2": "9"
-    }, {"0": "*", "1": "0", "2": "#"}],
+    keysArrayOfObjects: [{"0":"1","1":"2","2":"3","3":"4","4":"5","5":"6"},{"0":"7","1":"8","2":"9","3":"0","4":"*","5":"#"}],
 
     // Language Code (ISO 639-1) for custom keys (for language support)
     language: 'en',

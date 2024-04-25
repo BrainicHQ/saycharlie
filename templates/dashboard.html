@@ -4,12 +4,19 @@
     <!-- Include Kioskboard script -->
     <script src="https://cdn.jsdelivr.net/npm/kioskboard@2.3.0/dist/kioskboard-aio-2.3.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/kioskboard@2.3.0/dist/kioskboard-2.3.0.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.js"
+            integrity="sha512-2B9/byNV1KKRm5nQ2RLViPFD6U4dUjDGwuW1GU+ImJh8YinPU9Zlq1GzdTMO+G2ROrB5o1qasJBy1ttYz0wCug=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.css"
+          integrity="sha512-b+T2i3P45i1LZM7I00Ci5QquB9szqaxu+uuk5TUSGjZQ4w4n+qujQiIuvTv2BxE7WCGQCifNMksyKILDiHzsOg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
 {% endblock %}
 {% block content %}
     <!-- An example of a textarea element: The keyboard type is "all", the placement is "top", and the availability of the special characters is "true". -->
-    <textarea class="js-kioskboard-input" data-kioskboard-type="keyboard" data-kioskboard-placement="bottom"
-              data-kioskboard-specialcharacters="false" placeholder="Your Address"></textarea>
-
+    <button class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4
+    focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+            onclick="modal.open()">Send custom DTMF
+    </button>
     <!-- Display category buttons -->
     {% for button in buttons %}
         {% if button.isCategory %}
@@ -24,5 +31,6 @@
                     class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
         {% endif %}
     {% endfor %}
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
 {% endblock %}
