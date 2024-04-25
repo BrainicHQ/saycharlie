@@ -6,31 +6,36 @@
     <title>Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Settings</h1>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-3xl font-bold mb-6">Settings</h1>
 
     <!-- Form for adding buttons -->
-    <form method="POST" action="/add_button">
+    <form method="POST" action="/add_button" class="mb-8">
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="label">Button Label:</label>
-            <input type="text" id="label" name="label" required class="border border-gray-300 rounded-md p-2 w-full">
+            <label for="label" class="block text-sm font-semibold mb-2">Button Label:</label>
+            <input type="text" id="label" name="label" required
+                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
         </div>
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="action">Button Action:</label>
-            <input type="text" id="action" name="action" required class="border border-gray-300 rounded-md p-2 w-full">
+            <label for="action" class="block text-sm font-semibold mb-2">Button Action:</label>
+            <input type="text" id="action" name="action" required
+                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
         </div>
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="color">Button Color:</label>
-            <input type="color" id="color" name="color" value="#ffffff">
+            <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
+            <input type="color" id="color" name="color" value="#ffffff"
+                   class="h-10 w-10 border-2 border-gray-300 rounded">
+        </div>
+        <div class="flex items-center mb-4">
+            <input type="checkbox" id="parent_category" name="parent_category" class="mr-2 h-4 w-4">
+            <label for="parent_category" class="text-sm font-semibold">Is parent category</label>
         </div>
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="parent_category">Parent Category:</label>
-            <input type="checkbox" id="parent_category" name="parent_category">
-        </div>
-        <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="category">Category (optional):</label>
-            <select id="category" name="category" class="border border-gray-300 rounded-md p-2 w-full">
+            <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
+        <!-- disable if parent is checked -->
+            <select id="category" name="category"
+                    class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
                 <option value="">None</option>
                 {% for button in buttons %}
                     {% if button.isCategory %}
@@ -39,31 +44,35 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="glass-button bg-blue-500 text-white text-lg font-semibold p-2 rounded-md">Save
-            Button
+        <button type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+            Save Button
         </button>
     </form>
 
     <!-- Form for adjusting the number of columns -->
-    <form method="POST" action="/set_columns">
+    <form method="POST" action="/set_columns" class="mb-8">
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="columns">Number of Columns:</label>
-            <input type="number" id="columns" name="columns" value="{{ columns }}" min="1" max="5"
-                   class="border border-gray-300 rounded-md p-2 w-full">
+            <label for="columns" class="block text-sm font-semibold mb-2">Number of Columns:</label>
+            <input type="number" id="columns" name="columns" min="1" max="5" value="{{ columns }}"
+                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
         </div>
-        <button type="submit" class="glass-button bg-blue-500 text-white text-lg font-semibold p-2 rounded-md">Save
-            Columns
+        <button type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+            Save Columns
         </button>
     </form>
 
     <!-- Form for setting the background color -->
     <form method="POST" action="/app_background">
         <div class="mb-4">
-            <label class="block text-sm font-semibold mb-2" for="background">App background Color:</label>
-            <input type="color" id="background" name="app_background" value="{{ background }}">
+            <label for="background" class="block text-sm font-semibold mb-2">App background Color:</label>
+            <input type="color" id="background" name="app_background" value="{{ background }}"
+                   class="h-10 w-10 border-2 border-gray-300 rounded">
         </div>
-        <button type="submit" class="glass-button bg-blue-500 text-white text-lg font-semibold p-2 rounded-md">Save
-            Background
+        <button type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+            Save Background
         </button>
     </form>
 </div>
