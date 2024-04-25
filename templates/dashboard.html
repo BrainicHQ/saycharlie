@@ -10,8 +10,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.css"
           integrity="sha512-b+T2i3P45i1LZM7I00Ci5QquB9szqaxu+uuk5TUSGjZQ4w4n+qujQiIuvTv2BxE7WCGQCifNMksyKILDiHzsOg=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+            integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+            crossorigin="anonymous"></script>
 {% endblock %}
 {% block content %}
+    <div id="lastTalker" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Last Talker: Loading...</div>
     <!-- An example of a textarea element: The keyboard type is "all", the placement is "top", and the availability of the special characters is "true". -->
     <button class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4
     focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
@@ -31,6 +35,18 @@
                     class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
         {% endif %}
     {% endfor %}
+    <script>
+        var socket = io();
+
+        socket.on('connect', function () {
+            console.log('Connected to server');
+        });
+
+        socket.on('update_last_talker', function (data) {
+            // Update the content of the last talker <div>
+            document.getElementById('lastTalker').innerText = "Last Talker: " + data.last_talker;
+        });
+    </script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
 {% endblock %}
