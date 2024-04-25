@@ -7,6 +7,7 @@ from watchdog.events import FileSystemEventHandler
 
 class LogMonitor:
     def __init__(self, log_file, socketio):
+        self.talk_start_time = None
         self.observer = None
         self.log_file = log_file
         self.socketio = socketio
@@ -45,6 +46,7 @@ class LogMonitor:
         if re.match(r'.*Talker start on TG #\d+: (.+)', line):
             match = re.search(r'Talker start on TG #\d+: (.+)', line)
             self.active_talker = match.group(1)
+            self.talk_start_time = time.time()  # Record start time
             self.talkers.insert(0, self.active_talker)
             if len(self.talkers) > 10:
                 self.talkers.pop()
@@ -53,9 +55,12 @@ class LogMonitor:
         elif re.match(r'.*Talker stop on TG #\d+: (.+)', line):
             match = re.search(r'Talker stop on TG #\d+: (.+)', line)
             if self.active_talker == match.group(1):
+                talk_duration = time.time() - self.talk_start_time  # Calculate duration
                 self.active_talker = None
-                # Emit an update when a talker stops
-                self.socketio.emit('update_last_talker', {'last_talker': "No one currently talking"}, namespace='/')
+                # Emit an update when a talker stops, including the duration
+                self.socketio.emit('update_last_talker',
+                                   {'last_talker': "No one currently talking", 'duration': talk_duration},
+                                   namespace='/')
 
 
 class LogFileEventHandler(FileSystemEventHandler):
