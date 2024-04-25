@@ -36,6 +36,22 @@
                     class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
         {% endif %}
     {% endfor %}
+    <div class="mt-8">
+        <button id="startButton" class="bg-blue-500 text-white px-4 py-2 rounded-md">Start Measuring</button>
+        <br>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="relative">
+                <meter id="meter" high="0.25" max="0.2" value="0"
+                       class="w-full h-12 bg-accent text-white rounded-md"
+                       low="0.15" optimum="0.5"></meter>
+                <div id="dBLabel"
+                     class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs text-gray-500">
+                    0 dB
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/meter.js') }}"></script>
     <script src="{{ url_for('static', filename='js/talker.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
