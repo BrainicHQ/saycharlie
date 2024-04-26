@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
-from routes import dashboard, add_button, set_columns, app_background, settings, category
+from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
+    delete_file
 from threading import Thread
 from log_monitor import LogMonitor
 
@@ -9,6 +10,10 @@ def create_app():
     app = Flask(__name__)
     socketio = SocketIO(app)
     log_monitor = LogMonitor('./logs/svxlink', socketio)
+
+    app.add_url_rule('/files', view_func=file_manager, methods=['GET', 'POST'])
+    app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
+    app.add_url_rule('/files/delete/<filename>', view_func=delete_file, methods=['GET'])
 
     # Define routes
     @app.route('/')

@@ -1,6 +1,46 @@
-from flask import request, redirect, render_template
+from flask import request, redirect, render_template, url_for
+from werkzeug.utils import secure_filename
+
 from config import load_settings, save_settings
 import urllib.parse
+import os
+
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'conf'}
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def file_manager():
+    if request.method == 'POST':
+        # Check if the post request has the file part
+        file = request.files.get('file')
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            return redirect(url_for('file_manager'))
+
+    files = os.listdir(UPLOAD_FOLDER)
+    file_contents = {file: open(os.path.join(UPLOAD_FOLDER, file), 'r').read() for file in files}
+    return render_template('file_manager.html', files=files, file_contents=file_contents)
+
+
+def edit_file(filename):
+    content = request.form['content']
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    with open(file_path, 'w') as file:
+        file.write(content)
+    return redirect(url_for('file_manager'))
+
+
+def delete_file(filename):
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    os.remove(file_path)
+    return redirect(url_for('file_manager'))
 
 
 def dashboard():
