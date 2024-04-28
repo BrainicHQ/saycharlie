@@ -7,6 +7,7 @@ from watchdog.events import FileSystemEventHandler
 
 class LogMonitor:
     def __init__(self, log_file, socketio):
+        self.active_session = None
         self.talk_start_time = None
         self.observer = None
         self.log_file = log_file
@@ -43,24 +44,31 @@ class LogMonitor:
             print(f"Log file '{self.log_file}' not found.")
 
     def parse_line(self, line):
-        if re.match(r'.*Talker start on TG #\d+: (.+)', line):
-            match = re.search(r'Talker start on TG #\d+: (.+)', line)
-            self.active_talker = match.group(1)
-            self.talk_start_time = time.time()  # Record start time
-            self.talkers.insert(0, self.active_talker)
-            if len(self.talkers) > 10:
-                self.talkers.pop()
-            # Emit an update whenever a new talker starts
-            self.socketio.emit('update_last_talker', {'last_talker': self.active_talker}, namespace='/')
-        elif re.match(r'.*Talker stop on TG #\d+: (.+)', line):
-            match = re.search(r'Talker stop on TG #\d+: (.+)', line)
-            if self.active_talker == match.group(1):
-                talk_duration = time.time() - self.talk_start_time  # Calculate duration
-                self.active_talker = None
-                # Emit an update when a talker stops, including the duration
+        start_pattern = r'(\d+\.\d+\.\d+ \d+:\d+:\d+): ReflectorLogic: Talker start on TG #(\d+): (\S+)'
+        stop_pattern = r'(\d+\.\d+\.\d+ \d+:\d+:\d+): ReflectorLogic: Talker stop on TG #(\d+): (\S+)'
+        if re.match(start_pattern, line):
+            match = re.search(start_pattern, line)
+            date_time, tg_number, talker_name = match.groups()
+            self.active_session = {'start_time': time.time(), 'date_time': date_time, 'tg_number': tg_number,
+                                   'call_sign': talker_name}
+            if len(self.talkers) >= 10:
+                self.talkers.pop(0)
+            self.talkers.insert(0, self.active_session)
+            self.socketio.emit('update_last_talker', self.active_session, namespace='/')
+        elif re.match(stop_pattern, line):
+            match = re.search(stop_pattern, line)
+            date_time, tg_number, talker_name = match.groups()
+            if (self.active_session and self.active_session['call_sign'] == talker_name and
+                    self.active_session['tg_number'] == tg_number):
+                talk_duration = time.time() - self.active_session['start_time']
+                self.active_session.update({'stop_time': time.time(), 'duration': talk_duration})
                 self.socketio.emit('update_last_talker',
-                                   {'last_talker': "No one currently talking", 'duration': talk_duration},
+                                   {'last_talker': None, 'duration': talk_duration},
                                    namespace='/')
+                self.active_session = None
+
+    def get_last_talkers(self):
+        return self.talkers
 
 
 class LogFileEventHandler(FileSystemEventHandler):

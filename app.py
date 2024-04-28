@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
     delete_file
@@ -15,6 +15,11 @@ def create_app():
     app.add_url_rule('/files', view_func=file_manager, methods=['GET', 'POST'])
     app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
     app.add_url_rule('/files/delete/<filename>', view_func=delete_file, methods=['GET'])
+
+    @app.route('/history')
+    def last_talkers():
+        talkers = log_monitor.get_last_talkers()
+        return render_template('history.html', talkers=talkers, columns=last_talkers)
 
     @app.route('/send_dtmf/<dtmf_code>', methods=['POST'])
     def send_dtmf_route(dtmf_code):
