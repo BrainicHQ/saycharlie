@@ -9,7 +9,6 @@ socket.on('connect', () => {
 });
 
 socket.on('update_last_talker', (talker) => {
-    console.log('Received last talker data:', talker)
     const talker_callsign = talker['call_sign'];
     if (!talker['stopped']) {
         lastTalkerElement.innerText = "Current Talker: " + talker_callsign;
