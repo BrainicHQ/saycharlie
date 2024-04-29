@@ -49,7 +49,7 @@ class LogMonitor:
         if re.match(start_pattern, line):
             match = re.search(start_pattern, line)
             date_time, tg_number, talker_name = match.groups()
-            self.active_session = {'start_time': time.time(), 'date_time': date_time, 'tg_number': tg_number,
+            self.active_session = {'start_date_time': date_time, 'tg_number': tg_number,
                                    'call_sign': talker_name}
             if len(self.talkers) >= 10:
                 self.talkers.pop(0)
@@ -60,11 +60,12 @@ class LogMonitor:
             date_time, tg_number, talker_name = match.groups()
             if (self.active_session and self.active_session['call_sign'] == talker_name and
                     self.active_session['tg_number'] == tg_number):
-                talk_duration = time.time() - self.active_session['start_time']
-                self.active_session.update({'stop_time': time.time(), 'duration': talk_duration})
-                self.socketio.emit('update_last_talker',
-                                   {'last_talker': None, 'duration': talk_duration},
-                                   namespace='/')
+                talker_start_time = time.mktime(time.strptime(self.active_session['start_date_time'],
+                                                              '%d.%m.%Y %H:%M:%S'))
+                talker_stop_time = time.mktime(time.strptime(date_time, '%d.%m.%Y %H:%M:%S'))
+                duration = talker_stop_time - talker_start_time  # in seconds
+                self.active_session.update({'stop_date_time': date_time, 'stopped': True, 'duration': duration})
+                self.socketio.emit('update_last_talker', self.active_session, namespace='/')
                 self.active_session = None
 
     def get_last_talkers(self):

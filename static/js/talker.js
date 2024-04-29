@@ -8,17 +8,17 @@ socket.on('connect', () => {
     console.log('Connected to server');
 });
 
-socket.on('update_last_talker', (data) => {
-    console.log('Received last talker data:', data)
-    const last_talker = data['call_sign'];
-    if (last_talker) {
-        lastTalkerElement.innerText = "Current Talker: " + last_talker;
-        startTime = Date.now();  // Reset the start time for accurate timing
+socket.on('update_last_talker', (talker) => {
+    console.log('Received last talker data:', talker)
+    const talker_callsign = talker['call_sign'];
+    if (!talker['stopped']) {
+        lastTalkerElement.innerText = "Current Talker: " + talker_callsign;
+        startTime = parseDateTime(talker['start_date_time']).getTime();
         startTimer();
     } else {
-        lastTalkerElement.innerText = "No one currently talking.";
+        lastTalkerElement.innerText = "Previous Talker: " + talker_callsign;
         stopTimer();
-        displayTalkDuration(data.duration || 0);  // Display duration or reset if undefined
+        displayTalkDuration(talker.duration || 0);  // Display duration or reset if undefined
     }
 });
 
@@ -47,4 +47,14 @@ function displayTalkDuration(duration) {
         let seconds = Math.floor(duration % 60);
         timerElement.innerText = "Last Talk Duration: " + minutes + " min " + seconds + " sec";
     }
+}
+
+function parseDateTime(dateTimeStr) {
+    const [date, time] = dateTimeStr.split(' ');
+    const [day, month, year] = date.split('.');
+    const [hours, minutes, seconds] = time.split(':');
+
+    // Create a new Date object with year, month (0-indexed), day, hours, minutes, seconds
+    return new Date(+year, month - 1, // Month is 0-indexed in JavaScript
+        +day, +hours, +minutes, +seconds);
 }

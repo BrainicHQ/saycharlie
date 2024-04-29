@@ -21,6 +21,13 @@ def create_app():
         talkers = log_monitor.get_last_talkers()
         return render_template('history.html', talkers=talkers, columns=last_talkers)
 
+    @socketio.on('connect')
+    def handle_connect():
+        # get last talker
+        current_talkers = log_monitor.get_last_talkers()
+        if current_talkers:
+            emit('update_last_talker', current_talkers[0])
+
     @app.route('/send_dtmf/<dtmf_code>', methods=['POST'])
     def send_dtmf_route(dtmf_code):
         success, message = process_dtmf_request(dtmf_code)
