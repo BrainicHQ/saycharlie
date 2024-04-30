@@ -93,9 +93,9 @@ def create_app():
         if current_talkers:
             emit('update_last_talker', current_talkers[0])
 
-    @app.route('/api/send_dtmf/<dtmf_code>', methods=['POST'])
-    def send_dtmf_route(dtmf_code):
-        success, message = process_dtmf_request(dtmf_code)
+    @app.route('/api/send_dtmf', methods=['POST'])
+    def send_dtmf_route():
+        success, message = process_dtmf_request()
         if success:
             return jsonify({"success": True, "message": "DTMF code sent successfully."}), 200
         else:

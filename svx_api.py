@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 import logging
+from flask import request
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -72,7 +73,8 @@ def get_dtmf_ctrl_pty_from_config(config_file):
     return None, "DTMF_CTRL_PTY not found in the configuration file."
 
 
-def process_dtmf_request(dtmf_code):
+def process_dtmf_request():
+    dtmf_code = request.get_json().get("dtmf_code")
     config_file, message = find_config_file()
     if config_file:
         dtmf_ctrl_pty, message = get_dtmf_ctrl_pty_from_config(config_file)

@@ -53,8 +53,9 @@
     </div>
     <script>
         function sendDTMF(dtmf_code) {
-            fetch('/api/send_dtmf/' + dtmf_code, {
+            fetch('/api/send_dtmf', {
                 method: 'POST',
+                body: JSON.stringify({dtmf_code: dtmf_code}),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -64,7 +65,7 @@
                     alert('DTMF ' + dtmf_code + ' sent successfully');
                 } else {
                     console.error('Failed to send DTMF');
-                    alert('Failed to send DTMF' + response.statusText);
+                    alert('Failed to send DTMF: ' + response.statusText);
                 }
             });
         }
