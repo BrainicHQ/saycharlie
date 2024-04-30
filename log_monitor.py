@@ -48,17 +48,17 @@ class LogMonitor:
         stop_pattern = r'(\d+\.\d+\.\d+ \d+:\d+:\d+): ReflectorLogic: Talker stop on TG #(\d+): (\S+)'
         if re.match(start_pattern, line):
             match = re.search(start_pattern, line)
-            date_time, tg_number, talker_name = match.groups()
+            date_time, tg_number, talker_callsign = match.groups()
             self.active_session = {'start_date_time': date_time, 'tg_number': tg_number,
-                                   'call_sign': talker_name}
+                                   'callsign': talker_callsign}
             if len(self.talkers) >= 10:
                 self.talkers.pop(0)
             self.talkers.insert(0, self.active_session)
             self.socketio.emit('update_last_talker', self.active_session, namespace='/')
         elif re.match(stop_pattern, line):
             match = re.search(stop_pattern, line)
-            date_time, tg_number, talker_name = match.groups()
-            if (self.active_session and self.active_session['call_sign'] == talker_name and
+            date_time, tg_number, talker_callsign = match.groups()
+            if (self.active_session and self.active_session['callsign'] == talker_callsign and
                     self.active_session['tg_number'] == tg_number):
                 talker_start_time = time.mktime(time.strptime(self.active_session['start_date_time'],
                                                               '%d.%m.%Y %H:%M:%S'))

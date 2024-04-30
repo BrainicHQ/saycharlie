@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
-    delete_file
+    delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service
 from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
+from ham_radio_api import HamRadioAPI
 
 
 def get_local_ip():
@@ -25,6 +26,7 @@ def get_local_ip():
 
 def create_app():
     app = Flask(__name__)
+    api = HamRadioAPI()
     socketio = SocketIO(app)
     log_monitor = LogMonitor('./logs/svxlink', socketio)
 
@@ -58,9 +60,28 @@ def create_app():
     app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
     app.add_url_rule('/files/delete/<filename>', view_func=delete_file, methods=['GET'])
 
+    @app.route('/api/groups', methods=['GET'])
+    def get_talk_groups():
+        return get_talk_groups_data()
+
+    @app.route('/api/groups', methods=['POST'])
+    def add_talk_group_route():
+        return add_talk_group()
+
+    @app.route('/api/groups/<int:number>', methods=['PUT'])
+    def update_talk_group_route(number):
+        return update_talk_group(number)
+
+    @app.route('/api/groups/<int:number>', methods=['DELETE'])
+    def delete_talk_group_route(number):
+        return delete_talk_group(number)
+
     @app.route('/history')
     def last_talkers():
         talkers = log_monitor.get_last_talkers()
+        for talker in talkers:
+            details = api.get_ham_details(talker['callsign'])
+            talker['name'] = details.get('name', 'Not available')
         return render_template('history.html', talkers=talkers, columns=last_talkers)
 
     @socketio.on('connect')
@@ -93,6 +114,13 @@ def create_app():
             return jsonify({"success": True, "message": "SvxLink service restarted successfully."}), 200
         else:
             return jsonify({"success": False, "message": message}), 500
+
+    @app.route('/api/get-name/<callsign>', methods=['GET'])
+    def get_name_from_callsign_route(callsign):
+        details = api.get_ham_details(callsign)
+        if 'error' in details:
+            return jsonify({"error": details['error']}), 400
+        return jsonify({"name": details.get('name', 'Not available')}), 200
 
     # Define routes
     @app.route('/')

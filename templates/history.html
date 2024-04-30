@@ -15,6 +15,7 @@
             <tr>
                 <th scope="col" class="py-3 px-6">Time</th>
                 <th scope="col" class="py-3 px-6">Call Sign</th>
+                <th scope="col" class="py-3 px-6">Name</th>
                 <th scope="col" class="py-3 px-6">TG</th>
                 <th scope="col" class="py-3 px-6">TG Name</th>
             </tr>
@@ -22,8 +23,9 @@
             <tbody>
             {% for talker in talkers %}
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <td class="py-4 px-6">{{ talker.date_time }}</td>
-                    <td class="py-4 px-6">{{ talker.call_sign }}</td>
+                    <td class="py-4 px-6">{{ talker.stop_date_time }}</td>
+                    <td class="py-4 px-6">{{ talker.callsign }}</td>
+                    <td class="py-4 px-6">{{ talker.name }}</td>
                     <td class="py-4 px-6">{{ talker.tg_number }}</td>
                     <td class="py-4 px-6">{{ talker.tg_name }}</td>
                 </tr>

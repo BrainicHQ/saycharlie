@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
@@ -33,7 +34,7 @@
         </div>
         <div class="mb-4">
             <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
-        <!-- disable if parent is checked -->
+            <!-- disable if parent is checked -->
             <select id="category" name="category"
                     class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
                 <option value="">None</option>
@@ -64,7 +65,7 @@
     </form>
 
     <!-- Form for setting the background color -->
-    <form method="POST" action="/app_background">
+    <form method="POST" action="/app_background" class="mb-8">
         <div class="mb-4">
             <label for="background" class="block text-sm font-semibold mb-2">App background Color:</label>
             <input type="color" id="background" name="app_background" value="{{ background }}"
@@ -75,6 +76,75 @@
             Save Background
         </button>
     </form>
+    <div x-data="groupsManager()" x-init="fetchGroups()" class="container mx-auto">
+        <div class="mb-4">
+            <button @click="addGroup()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Add Group
+            </button>
+        </div>
+        <template x-for="(group, index) in groups" :key="index">
+            <div class="bg-white p-4 mb-2 rounded shadow-md flex items-center justify-between">
+                <div>
+                    <input x-model="group.number" class="mr-2 px-2 py-1 border rounded" placeholder="Number" required>
+                    <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
+                </div>
+                <div>
+                    <button @click="saveGroup(group, index)" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
+                        Save
+                    </button>
+                    <button @click="deleteGroup(group, index)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
 </div>
+<script>
+        function groupsManager() {
+            return {
+                groups: [],
+                fetchGroups() {
+                    fetch('/api/groups')
+                        .then(response => response.json())
+                        .then(data => this.groups = data)
+                        .catch(error => console.error('Error loading groups:', error));
+                },
+                addGroup() {
+                    this.groups.push({ number: '', name: '' });
+                },
+                saveGroup(group, index) {
+                    if (!group.number.trim() || !group.name.trim()) {
+                        alert("Both the number and name are required.");
+                        return;
+                    }
+                    const url = group.number ? `/api/groups/${group.number}` : '/api/groups';
+                    const method = group.number ? 'PUT' : 'POST';
+                    fetch(url, {
+                        method: method,
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(group)
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log('Success:', data))
+                    .catch(error => console.error('Error saving group:', error));
+                },
+                deleteGroup(group, index) {
+                    if (!group.number) {
+                        this.groups.splice(index, 1);
+                        return;
+                    }
+                    fetch(`/api/groups/${group.number}`, {
+                        method: 'DELETE'
+                    })
+                    .then(() => {
+                        this.groups.splice(index, 1);
+                        console.log('Group deleted successfully');
+                    })
+                    .catch(error => console.error('Error deleting group:', error));
+                }
+            }
+        }
+    </script>
 </body>
 </html>

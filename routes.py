@@ -1,4 +1,4 @@
-from flask import request, redirect, render_template, url_for
+from flask import request, redirect, render_template, url_for, jsonify
 from werkzeug.utils import secure_filename
 
 from config import load_settings, save_settings
@@ -111,6 +111,55 @@ def app_background():
         return redirect('/')
 
 
+def get_talk_groups_data():
+    settings_data = load_settings()
+    return jsonify(settings_data.get('talk_groups', [])), 200
+
+
+def add_talk_group():
+    settings_data = load_settings()
+    data = request.get_json()
+    talk_group = {
+        'name': data['name'],
+        'number': data['number']
+    }
+
+    if any(group['number'] == talk_group['number'] for group in settings_data.get('talk_groups', [])):
+        return jsonify({"status": "error", "message": "Talk group already exists"}), 400
+
+    settings_data.setdefault('talk_groups', []).append(talk_group)
+    save_settings(settings_data)
+    return jsonify({"status": "success", "message": f"Talk group {talk_group['name']} added successfully"}), 201
+
+
+def update_talk_group(number):
+    settings_data = load_settings()
+    data = request.get_json()
+    groups = settings_data.get('talk_groups', [])
+    index = next((i for i, group in enumerate(groups) if str(group['number']) == str(number)), None)
+    if index is None:
+        return jsonify({"status": "error", "message": "Talk group not found"}), 404
+
+    groups[index]['name'] = data.get('name')  # Update the group name if 'name' key exists in the request JSON
+    settings_data['talk_groups'] = groups
+    save_settings(settings_data)
+    return jsonify({"status": "success", "message": "Talk group updated successfully"}), 200
+
+
+def delete_talk_group(number):
+    settings_data = load_settings()
+    groups = settings_data.get('talk_groups', [])
+    index = next((i for i, group in enumerate(groups) if str(group['number']) == str(number)), None)
+    if index is None:
+        return jsonify({"status": "error", "message": "Talk group not found"}), 404
+
+    del groups[index]
+    settings_data['talk_groups'] = groups
+    save_settings(settings_data)
+    return jsonify({"status": "success", "message": "Talk group deleted successfully"}), 200
+
+
 def settings():
     settings_data = load_settings()
-    return render_template('settings.html', columns=settings_data['columns'], buttons=settings_data['buttons'])
+    return render_template('settings.html', columns=settings_data['columns'], buttons=settings_data['buttons'],
+                           talk_groups=settings_data.get('talk_groups', []))

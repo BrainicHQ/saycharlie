@@ -8,16 +8,32 @@ socket.on('connect', () => {
     console.log('Connected to server');
 });
 
-socket.on('update_last_talker', (talker) => {
-    const talker_callsign = talker['call_sign'];
-    if (!talker['stopped']) {
-        lastTalkerElement.innerText = "Current Talker: " + talker_callsign;
-        startTime = parseDateTime(talker['start_date_time']).getTime();
-        startTimer();
-    } else {
-        lastTalkerElement.innerText = "Previous Talker: " + talker_callsign;
-        stopTimer();
-        displayTalkDuration(talker.duration || 0);  // Display duration or reset if undefined
+socket.on('update_last_talker', async (talker) => {
+    const talker_callsign = talker['callsign'];
+    try {
+        // Fetch the name using the async function
+        const name = await fetchName(talker_callsign);
+        const displayName = name ? ` (${name})` : ' (Name unavailable)';
+
+        if (!talker['stopped']) {
+            lastTalkerElement.innerText = "Current Talker: " + talker_callsign + displayName;
+            startTime = parseDateTime(talker['start_date_time']).getTime();
+            startTimer();
+        } else {
+            lastTalkerElement.innerText = "Previous Talker: " + talker_callsign + displayName;
+            stopTimer();
+            displayTalkDuration(talker.duration || 0);  // Display duration or reset if undefined
+        }
+    } catch (error) {
+        console.error('Failed to fetch name:', error);
+        // Handle the error by updating the UI appropriately
+        lastTalkerElement.innerText = talker['stopped'] ? "Previous Talker: " + talker_callsign + " (Failed to fetch name)" : "Current Talker: " + talker_callsign + " (Failed to fetch name)";
+        if (!talker['stopped']) {
+            startTimer();
+        } else {
+            stopTimer();
+            displayTalkDuration(talker.duration || 0);
+        }
     }
 });
 
