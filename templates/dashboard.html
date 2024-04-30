@@ -32,7 +32,7 @@
     <!-- Display standalone buttons -->
     {% for button in buttons %}
         {% if not button.isCategory and not button.category %}
-            <button onclick="window.location.href='{{ button.action }}'"
+            <button onclick="sendDTMF('{{ button.action }}')"
                     class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
         {% endif %}
     {% endfor %}
@@ -51,6 +51,24 @@
             </div>
         </div>
     </div>
+    <script>
+        function sendDTMF(dtmf_code) {
+            fetch('/api/send_dtmf/' + dtmf_code, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => {
+                if (response.ok) {
+                    console.log('DTMF ' + dtmf_code + ' sent successfully');
+                    alert('DTMF ' + dtmf_code + ' sent successfully');
+                } else {
+                    console.error('Failed to send DTMF');
+                    alert('Failed to send DTMF' + response.statusText);
+                }
+            });
+        }
+    </script>
     <script src="{{ url_for('static', filename='js/ham-api.js') }}"></script>
     <script src="{{ url_for('static', filename='js/meter.js') }}"></script>
     <script src="{{ url_for('static', filename='js/talker.js') }}"></script>

@@ -93,7 +93,7 @@ def create_app():
         if current_talkers:
             emit('update_last_talker', current_talkers[0])
 
-    @app.route('/send_dtmf/<dtmf_code>', methods=['POST'])
+    @app.route('/api/send_dtmf/<dtmf_code>', methods=['POST'])
     def send_dtmf_route(dtmf_code):
         success, message = process_dtmf_request(dtmf_code)
         if success:
