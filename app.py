@@ -4,7 +4,8 @@ from routes import dashboard, add_button, set_columns, app_background, settings,
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name
 from threading import Thread
 from log_monitor import LogMonitor
-from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service
+from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service, get_svx_profiles, \
+    switch_svxlink_profile
 from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
@@ -59,6 +60,19 @@ def create_app():
     app.add_url_rule('/files', view_func=file_manager, methods=['GET', 'POST'])
     app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
     app.add_url_rule('/files/delete/<filename>', view_func=delete_file, methods=['GET'])
+
+    @app.route('/api/profiles', methods=['GET'])
+    def get_svx_profiles_route():
+        return get_svx_profiles()
+
+    @app.route('/api/switch_profile', methods=['POST'])
+    def switch_svxlink_profile_route():
+        profile_name = request.json.get('profile')
+        success, message = switch_svxlink_profile(profile_name)
+        if success:
+            return jsonify({"success": True, "message": message}), 200
+        else:
+            return jsonify({"success": False, "message": message}), 500
 
     @app.route('/api/groups', methods=['GET'])
     def get_talk_groups():

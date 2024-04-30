@@ -116,3 +116,115 @@ def restart_svxlink_service():
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart SvxLink service: {e}")
         return False, str(e)
+
+
+def get_svx_profiles():
+    """
+    List all available SVXLink profiles from the /uploads directory and indicate which one is active.
+    Each profile is represented as a dictionary with 'name' and 'isActive' properties.
+    """
+    svx_profiles = []
+    svxlink_path = Path('uploads/')
+    active_profile = get_active_profile()  # Assumes this function returns the name of the active profile without '.conf'
+
+    if svxlink_path.exists():
+        for file in svxlink_path.iterdir():
+            if file.is_file() and file.suffix == '.conf':
+                profile_name = file.stem
+                # Append a dictionary with the profile name and its active status
+                svx_profiles.append({
+                    'name': profile_name,
+                    'isActive': (profile_name == active_profile)
+                })
+
+    # Sort the profiles by name; active status is not affected by sorting
+    svx_profiles.sort(key=lambda x: x['name'])
+
+    return svx_profiles
+
+
+def get_active_profile():
+    """
+    Determine the currently active svxlink profile by checking which profile the symlink points to.
+    """
+    config_file, _ = find_config_file()
+    if config_file and Path(config_file).is_symlink():
+        return Path(config_file).resolve().stem
+    return None
+
+
+def switch_svxlink_profile(profile_name):
+    """
+    Switch the original svxlink configuration file to a symlink pointing to the selected profile.
+    """
+    success, message = backup_original_svxlink_config()
+    if not success:
+        return False, message
+
+    config_file, message = find_config_file()
+    if config_file:
+        # Construct the profile_path with a full path starting from the script's current directory
+        current_dir = Path(__file__).parent
+        profile_path = current_dir / 'uploads' / f'{profile_name}.conf'
+        symlink_path = Path(config_file)
+        print(symlink_path, symlink_path.is_symlink(), symlink_path.exists())
+        print(profile_path, profile_path.is_file(), profile_path.exists())
+
+        try:
+            # Ensure the directory for the symlink exists
+            symlink_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Remove the existing symlink or file if it exists
+            if symlink_path.is_symlink() or symlink_path.exists():
+                symlink_path.unlink()
+
+            # Create a new symlink
+            symlink_path.symlink_to(profile_path)
+            print(f"Symlink created: {symlink_path} -> {profile_path}")
+            logging.info(f"Switched to profile via symlink: {profile_name}")
+            return True, f"Switched to profile via symlink: {profile_name}"
+        except OSError as e:
+            logging.error(f"Failed to switch to profile: {e}")
+            return False, str(e)
+    else:
+        return False, message
+
+
+def backup_original_svxlink_config():
+    """
+    Backup the original svxlink configuration file, if no backup exists.
+    """
+    config_file, message = find_config_file()
+    if config_file:
+        backup_file = Path(config_file).with_suffix('.bak')
+        if not backup_file.exists():  # Check if backup already exists
+            try:
+                Path(config_file).replace(backup_file)
+                logging.info(f"Original configuration file backed up to: {backup_file}")
+                return True, f"Original configuration file backed up to: {backup_file}"
+            except Exception as e:
+                logging.error(f"Failed to backup original configuration file: {e}")
+                return False, str(e)
+        else:
+            return True, f"Backup already exists: {backup_file}"
+    return False, message
+
+
+def restore_original_svxlink_config():
+    """
+    Restore the original svxlink configuration file from the backup
+    """
+    config_file, message = find_config_file()
+    if config_file:
+        backup_file = Path(config_file).with_suffix('.bak')
+        if backup_file.exists():  # Check if backup file exists
+            try:
+                Path(backup_file).replace(config_file)
+                logging.info(f"Original configuration file restored from backup.")
+                return True, "Original configuration file restored from backup."
+            except Exception as e:  # Broader exception handling
+                logging.error(f"Failed to restore original configuration file from backup: {e}")
+                return False, str(e)
+        else:
+            return False, "Backup file does not exist."
+    return False, message
