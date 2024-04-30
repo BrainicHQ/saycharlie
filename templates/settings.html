@@ -89,10 +89,12 @@
                     <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
                 </div>
                 <div>
-                    <button @click="saveGroup(group, index)" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
+                    <button @click="saveGroup(group, index)"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
                         Save
                     </button>
-                    <button @click="deleteGroup(group, index)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    <button @click="deleteGroup(group, index)"
+                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                         Delete
                     </button>
                 </div>
@@ -101,50 +103,85 @@
     </div>
 </div>
 <script>
-        function groupsManager() {
-            return {
-                groups: [],
-                fetchGroups() {
-                    fetch('/api/groups')
-                        .then(response => response.json())
-                        .then(data => this.groups = data)
-                        .catch(error => console.error('Error loading groups:', error));
-                },
-                addGroup() {
-                    this.groups.push({ number: '', name: '' });
-                },
-                saveGroup(group, index) {
-                    if (!group.number.trim() || !group.name.trim()) {
-                        alert("Both the number and name are required.");
-                        return;
-                    }
-                    const url = group.number ? `/api/groups/${group.number}` : '/api/groups';
-                    const method = group.number ? 'PUT' : 'POST';
-                    fetch(url, {
-                        method: method,
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(group)
+    function groupsManager() {
+        return {
+            groups: [],
+            fetchGroups() {
+                fetch('/api/groups')
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                alert("Failed to load groups: " + data.message);
+                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                            });
+                        }
+                        return response.json();
                     })
-                    .then(response => response.json())
-                    .then(data => console.log('Success:', data))
+                    .then(data => {
+                        this.groups = data;
+                    })
+                    .catch(error => console.error('Error loading groups:', error));
+            },
+            addGroup() {
+                this.groups.push({id: '', number: '', name: '', isNew: true});
+            },
+            saveGroup(group, index) {
+                if (!group.number.trim() || !group.name.trim()) {
+                    alert("Both the number and name are required.");
+                    return;
+                }
+                const url = group.isNew ? '/api/groups' : `/api/groups/${group.id}`; // Use UUID for updates
+                const method = group.isNew ? 'POST' : 'PUT';
+                const body = {number: group.number, name: group.name};
+
+                fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                })
+                    .then(response => {
+                        if (!response.ok) { // Checks if the status code is not in the range 200-299
+                            return response.json().then(data => {
+                                alert(data.message); // Example of alerting the error message
+                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Success:', data);
+                        if (group.isNew) {
+                            group.isNew = false;
+                            group.id = data.id; // Update the ID from the server response
+                        }
+                    })
                     .catch(error => console.error('Error saving group:', error));
-                },
-                deleteGroup(group, index) {
-                    if (!group.number) {
-                        this.groups.splice(index, 1);
-                        return;
-                    }
-                    fetch(`/api/groups/${group.number}`, {
-                        method: 'DELETE'
+            },
+            deleteGroup(group, index) {
+                if (!group.id) {
+                    this.groups.splice(index, 1);
+                    return;
+                }
+                fetch(`/api/groups/${group.id}`, { // Use UUID for deletion
+                    method: 'DELETE'
+                })
+                    .then(response => {
+                        if (!response.ok) { // Check response status
+                            return response.json().then(data => {
+                                alert(data.message); // Show error message
+                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                            });
+                        }
+                        return response.json(); // Optional: if you expect data back
                     })
                     .then(() => {
-                        this.groups.splice(index, 1);
                         console.log('Group deleted successfully');
+                        this.groups.splice(index, 1); // Remove group from the local model
                     })
                     .catch(error => console.error('Error deleting group:', error));
-                }
             }
         }
-    </script>
+    }
+</script>
 </body>
 </html>

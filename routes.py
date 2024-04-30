@@ -1,3 +1,5 @@
+import uuid
+
 from flask import request, redirect, render_template, url_for, jsonify
 from werkzeug.utils import secure_filename
 
@@ -116,43 +118,70 @@ def get_talk_groups_data():
     return jsonify(settings_data.get('talk_groups', [])), 200
 
 
+def get_group_name(number):
+    settings_data = load_settings()
+    groups = settings_data.get('talk_groups', [])
+    group = next((group for group in groups if str(group['number']) == str(number)), None)
+    if group is not None:
+        return group['name']
+    return None
+
+
 def add_talk_group():
     settings_data = load_settings()
     data = request.get_json()
+    new_uuid = str(uuid.uuid4())  # Generate a new UUID for each new group
     talk_group = {
+        'id': new_uuid,
         'name': data['name'],
         'number': data['number']
     }
 
     if any(group['number'] == talk_group['number'] for group in settings_data.get('talk_groups', [])):
-        return jsonify({"status": "error", "message": "Talk group already exists"}), 400
+        return jsonify({"status": "error", "message": "Talk group number already exists"}), 400
 
     settings_data.setdefault('talk_groups', []).append(talk_group)
     save_settings(settings_data)
-    return jsonify({"status": "success", "message": f"Talk group {talk_group['name']} added successfully"}), 201
+    return jsonify(
+        {"id": new_uuid, "status": "success", "message": f"Talk group {talk_group['name']} added successfully"}), 201
 
 
-def update_talk_group(number):
+def update_talk_group(uuid_id):
     settings_data = load_settings()
     data = request.get_json()
     groups = settings_data.get('talk_groups', [])
-    index = next((i for i, group in enumerate(groups) if str(group['number']) == str(number)), None)
+    uuid_id_str = str(uuid_id)  # Ensure uuid_id is treated as a string
+
+    # Find the index of the group to update
+    index = next((i for i, group in enumerate(groups) if group['id'] == uuid_id_str), None)
     if index is None:
         return jsonify({"status": "error", "message": "Talk group not found"}), 404
 
-    groups[index]['name'] = data.get('name')  # Update the group name if 'name' key exists in the request JSON
-    settings_data['talk_groups'] = groups
+    new_number = data.get('number')
+    new_name = data.get('name', groups[index]['name'])  # Default to current name if not provided
+
+    # Check if the new number is unique among other groups, except the current one being updated
+    if new_number and any(group['number'] == new_number and group['id'] != uuid_id_str for group in groups):
+        return jsonify({"status": "error", "message": "Talk group number already exists"}), 400
+
+    # Update the group's number and name
+    groups[index]['number'] = new_number if new_number is not None else groups[index]['number']
+    groups[index]['name'] = new_name
     save_settings(settings_data)
     return jsonify({"status": "success", "message": "Talk group updated successfully"}), 200
 
 
-def delete_talk_group(number):
+def delete_talk_group(uuid_id):
     settings_data = load_settings()
     groups = settings_data.get('talk_groups', [])
-    index = next((i for i, group in enumerate(groups) if str(group['number']) == str(number)), None)
+    # Convert uuid_id to str in case it's not already a string
+    uuid_id_str = str(uuid_id)
+
+    index = next((i for i, group in enumerate(groups) if group['id'] == uuid_id_str), None)
     if index is None:
         return jsonify({"status": "error", "message": "Talk group not found"}), 404
 
+    # Remove the group from the list
     del groups[index]
     settings_data['talk_groups'] = groups
     save_settings(settings_data)

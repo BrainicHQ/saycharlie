@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
-    delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data
+    delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service
@@ -68,13 +68,13 @@ def create_app():
     def add_talk_group_route():
         return add_talk_group()
 
-    @app.route('/api/groups/<int:number>', methods=['PUT'])
-    def update_talk_group_route(number):
-        return update_talk_group(number)
+    @app.route('/api/groups/<uuid:uuid_id>', methods=['PUT'])
+    def update_talk_group_route(uuid_id):
+        return update_talk_group(uuid_id)
 
-    @app.route('/api/groups/<int:number>', methods=['DELETE'])
-    def delete_talk_group_route(number):
-        return delete_talk_group(number)
+    @app.route('/api/groups/<uuid:uuid_id>', methods=['DELETE'])
+    def delete_talk_group_route(uuid_id):
+        return delete_talk_group(uuid_id)
 
     @app.route('/history')
     def last_talkers():
@@ -82,6 +82,8 @@ def create_app():
         for talker in talkers:
             details = api.get_ham_details(talker['callsign'])
             talker['name'] = details.get('name', 'Not available')
+            # fill tg_name based on talkgroup number found in the settings
+            talker['tg_name'] = get_group_name(talker['tg_number'])
         return render_template('history.html', talkers=talkers, columns=last_talkers)
 
     @socketio.on('connect')
