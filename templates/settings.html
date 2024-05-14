@@ -8,161 +8,248 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-<div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-    <h1 class="text-3xl font-bold mb-6">Settings</h1>
+<div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg space-y-8">
+    <h1 class="text-3xl font-bold mb-6 text-center">Settings</h1>
 
     <!-- Form for adding buttons -->
-    <form method="POST" action="/add_button" class="mb-8">
-        <div class="mb-4">
-            <label for="label" class="block text-sm font-semibold mb-2">Button Label:</label>
-            <input type="text" id="label" name="label" required
-                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+    <section class="bg-gray-50 p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Add Button</h2>
+        <div x-data="buttonManager()">
+            <form @submit.prevent="addButton()">
+                <div class="mb-4">
+                    <label for="label" class="block text-sm font-semibold mb-2">Button Label:</label>
+                    <input type="text" id="label" x-model="newButton.label" required
+                           class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="action" class="block text-sm font-semibold mb-2">Button Action:</label>
+                    <input type="text" id="action" x-model="newButton.action" :disabled="newButton.isCategory" required
+                           class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
+                    <input type="color" id="color" x-model="newButton.color"
+                           class="h-10 w-10 border-2 border-gray-300 rounded">
+                </div>
+                <div class="flex items-center mb-4">
+                    <input type="checkbox" id="parent_category" x-model="newButton.isCategory" class="mr-2 h-4 w-4">
+                    <label for="parent_category" class="text-sm font-semibold">Is Parent Category</label>
+                </div>
+                <div class="mb-4">
+                    <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
+                    <select id="category" x-model="newButton.category" :disabled="newButton.isCategory"
+                            class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+                        <option value="">None</option>
+                        {% for button in buttons %}
+                            {% if button.isCategory %}
+                                <option value="{{ button.label }}">{{ button.label }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                    Save Button
+                </button>
+            </form>
         </div>
-        <div class="mb-4">
-            <label for="action" class="block text-sm font-semibold mb-2">Button Action:</label>
-            <input type="text" id="action" name="action" required
-                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-        </div>
-        <div class="mb-4">
-            <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
-            <input type="color" id="color" name="color" value="#ffffff"
-                   class="h-10 w-10 border-2 border-gray-300 rounded">
-        </div>
-        <div class="flex items-center mb-4">
-            <input type="checkbox" id="parent_category" name="parent_category" class="mr-2 h-4 w-4">
-            <label for="parent_category" class="text-sm font-semibold">Is parent category</label>
-        </div>
-        <div class="mb-4">
-            <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
-            <!-- disable if parent is checked -->
-            <select id="category" name="category"
-                    class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-                <option value="">None</option>
-                {% for button in buttons %}
-                    {% if button.isCategory %}
-                        <option value="{{ button.label }}">{{ button.label }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-            Save Button
-        </button>
-    </form>
+    </section>
 
     <!-- Form for adjusting the number of columns -->
-    <form method="POST" action="/set_columns" class="mb-8">
-        <div class="mb-4">
+    <section class="bg-gray-50 p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Adjust Columns</h2>
+        <div x-data="{ columns: {{ columns }} }">
             <label for="columns" class="block text-sm font-semibold mb-2">Number of Columns:</label>
-            <input type="number" id="columns" name="columns" min="1" max="5" value="{{ columns }}"
-                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-        </div>
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-            Save Columns
-        </button>
-    </form>
-
-    <!-- Form for setting the background color -->
-    <form method="POST" action="/app_background" class="mb-8">
-        <div class="mb-4">
-            <label for="background" class="block text-sm font-semibold mb-2">App background Color:</label>
-            <input type="color" id="background" name="app_background" value="{{ background }}"
-                   class="h-10 w-10 border-2 border-gray-300 rounded">
-        </div>
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-            Save Background
-        </button>
-    </form>
-
-    <!-- Form for selecting the active profile -->
-    <div x-data="profileSwitcher()" x-init="fetchProfiles()" class="p-5 bg-white rounded-lg shadow">
-        <h1 class="text-lg font-bold mb-4">Switch Profile</h1>
-        <select x-model="selectedProfile" class="block w-full p-2 border rounded">
-            <!-- Use profile.name for display and selection value -->
-            <template x-for="profile in profiles" :key="profile.name">
-                <option x-text="profile.name + (profile.isActive ? ' (Active)' : '')" :value="profile.name"></option>
-            </template>
-        </select>
-        <button @click="switchProfile" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Activate
-            Profile
-        </button>
-        <p x-text="message" class="mt-4 text-green-500"></p>
-    </div>
-
-
-    <div x-data="groupsManager()" x-init="fetchGroups()" class="container mx-auto">
-        <div class="mb-4">
-            <button @click="addGroup()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Add Group
+            <input type="number" x-model="columns" min="1" max="5"
+                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm mb-4">
+            <button @click.prevent="saveColumns"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                Save Columns
             </button>
         </div>
-        <template x-for="(group, index) in groups" :key="index">
-            <div class="bg-white p-4 mb-2 rounded shadow-md flex items-center justify-between">
-                <div>
-                    <input x-model="group.number" class="mr-2 px-2 py-1 border rounded" placeholder="Number" required>
-                    <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
-                </div>
-                <div>
-                    <button @click="saveGroup(group, index)"
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
-                        Save
-                    </button>
-                    <button @click="deleteGroup(group, index)"
-                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                        Delete
-                    </button>
-                </div>
+    </section>
+
+    <!-- Form for setting the background color -->
+    <section class="bg-gray-50 p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Set Background Color</h2>
+        <div x-data="{ backgroundColor: '{{ background }}' }">
+            <label for="background" class="block text-sm font-semibold mb-2">App Background Color:</label>
+            <div class="flex items-center space-x-4">
+                <input type="color" x-model="backgroundColor" class="h-10 w-10 border-2 border-gray-300 rounded mb-4">
+                <button @click.prevent="saveBackgroundColor"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mb-4">
+                    Save Background
+                </button>
             </div>
-        </template>
-    </div>
+        </div>
+    </section>
+
+
+    <!-- Form for selecting the active profile -->
+    <section class="bg-gray-50 p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Switch Profile</h2>
+        <div x-data="profileSwitcher()" x-init="fetchProfiles()">
+            <select x-model="selectedProfile" class="block w-full p-2 border rounded mb-4">
+                <template x-for="profile in profiles" :key="profile.name">
+                    <option x-text="profile.name + (profile.isActive ? ' (Active)' : '')"
+                            :value="profile.name"></option>
+                </template>
+            </select>
+            <button @click="switchProfile"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                Activate Profile
+            </button>
+            <p x-text="message" class="mt-4 text-green-500"></p>
+        </div>
+    </section>
+
+    <!-- Form for managing groups -->
+    <section class="bg-gray-50 p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Manage Groups</h2>
+        <div x-data="groupsManager()" x-init="fetchGroups()">
+            <div class="mb-4">
+                <button @click="addGroup()"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Add Group
+                </button>
+            </div>
+            <template x-for="(group, index) in groups" :key="index">
+                <div class="bg-white p-4 mb-2 rounded shadow-md flex items-center justify-between">
+                    <div>
+                        <input x-model="group.number" class="mr-2 px-2 py-1 border rounded" placeholder="Number"
+                               required>
+                        <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
+                    </div>
+                    <div>
+                        <button @click="saveGroup(group, index)"
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
+                            Save
+                        </button>
+                        <button @click="deleteGroup(group, index)"
+                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </section>
 </div>
 <script>
-function profileSwitcher() {
-    return {
-        profiles: [],
-        selectedProfile: '',
-        message: '',
+    function buttonManager() {
+        return {
+            newButton: {label: '', action: '', color: '#ffffff', isCategory: false, category: ''},
 
-        fetchProfiles: function() {
-            fetch('/api/profiles')
-                .then(response => response.json())
-                .then(data => {
-                    this.profiles = data;
-                    // Set selectedProfile to the first active profile found, or the first profile if none are active
-                    const activeProfile = this.profiles.find(p => p.isActive);
-                    this.selectedProfile = activeProfile ? activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
+            addButton() {
+                fetch('/add_button', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(this.newButton)
                 })
-                .catch(error => console.error('Error loading the profiles:', error));
-        },
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert(data.message); // Display success or error message
+                        if (data.success) {
+                            this.resetForm(); // Clear the form after successful submission
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding button:', error);
+                        alert('Failed to add button. Please try again.');
+                    });
+            },
 
-        switchProfile: function() {
-            fetch('/api/switch_profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({profile: this.selectedProfile})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.message = `Profile switched successfully: ${data.message}`;
-                    this.fetchProfiles(); // Refresh profiles to update active status
-                } else {
-                    this.message = `Failed to switch profile: ${data.message}`;
-                    console.error('Error:', data.message);
-                }
-            })
-            .catch(error => {
-                this.message = `Error: ${error}`;
-                console.error('Error:', error);
-            });
-        }
-    };
-}
+            resetForm() {
+                this.newButton = {label: '', action: '', color: '#ffffff', isCategory: false, category: ''};
+            }
+        };
+    }
+
+    function saveColumns() {
+        fetch('/set_columns', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({columns: this.columns})
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).then(data => {
+            alert(data.message); // Display success or error message
+        }).catch(error => {
+            console.error('Error saving columns:', error);
+            alert('Failed to save columns. Please try again.');
+        });
+    }
+
+    function saveBackgroundColor() {
+        fetch('/app_background', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({background: this.backgroundColor})
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).then(data => {
+            alert(data.message); // Display success or error message
+        }).catch(error => {
+            console.error('Error updating background color:', error);
+            alert('Failed to update background color. Please try again.');
+        });
+    }
+</script>
+<script>
+    function profileSwitcher() {
+        return {
+            profiles: [],
+            selectedProfile: '',
+            message: '',
+
+            fetchProfiles: function () {
+                fetch('/api/profiles')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.profiles = data;
+                        // Set selectedProfile to the first active profile found, or the first profile if none are active
+                        const activeProfile = this.profiles.find(p => p.isActive);
+                        this.selectedProfile = activeProfile ? activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
+                    })
+                    .catch(error => console.error('Error loading the profiles:', error));
+            },
+
+            switchProfile: function () {
+                fetch('/api/switch_profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({profile: this.selectedProfile})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.message = `Profile switched successfully: ${data.message}`;
+                            this.fetchProfiles(); // Refresh profiles to update active status
+                        } else {
+                            this.message = `Failed to switch profile: ${data.message}`;
+                            console.error('Error:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        this.message = `Error: ${error}`;
+                        console.error('Error:', error);
+                    });
+            }
+        };
+    }
 </script>
 <script>
     function groupsManager() {

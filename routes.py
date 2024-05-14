@@ -70,14 +70,15 @@ def category(category_name):
 
 
 def add_button():
-    if request.method == 'POST':
+    try:
         settings_data = load_settings()
-        # Process form submission and update button settings
+        data = request.json  # Access JSON data sent by Alpine.js
+
         new_button = {
-            'label': request.form['label'],
-            'color': request.form['color'],
-            'category': request.form.get('category'),
-            'isCategory': 'parent_category' in request.form
+            'label': data['label'],
+            'color': data['color'],
+            'category': data.get('category'),
+            'isCategory': data.get('isCategory', False)
         }
 
         if new_button['isCategory']:
@@ -88,29 +89,37 @@ def add_button():
             }
             settings_data.setdefault('categories', []).append(new_category)
         else:
-            new_button['action'] = request.form['action']
+            new_button['action'] = data['action']
 
         settings_data['buttons'].append(new_button)
         save_settings(settings_data)
-        return redirect('/')
+        return jsonify({'success': True, 'message': 'Button added successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 
 def set_columns():
-    if request.method == 'POST':
+    try:
         settings_data = load_settings()
-        columns = int(request.form['columns'])
+        data = request.json
+        columns = int(data['columns'])
         settings_data['columns'] = columns
         save_settings(settings_data)
-        return redirect('/')
+        return jsonify({'success': True, 'message': 'Columns updated successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 
 def app_background():
-    if request.method == 'POST':
+    try:
         settings_data = load_settings()
-        app_background = request.form['app_background']
+        data = request.json
+        app_background = data['background']
         settings_data['app_background'] = app_background
         save_settings(settings_data)
-        return redirect('/')
+        return jsonify({'success': True, 'message': 'Background color updated successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 
 def get_talk_groups_data():
@@ -191,4 +200,5 @@ def delete_talk_group(uuid_id):
 def settings():
     settings_data = load_settings()
     return render_template('settings.html', columns=settings_data['columns'], buttons=settings_data['buttons'],
-                           talk_groups=settings_data.get('talk_groups', []))
+                           talk_groups=settings_data.get('talk_groups', []),
+                           background=settings_data['app_background'])
