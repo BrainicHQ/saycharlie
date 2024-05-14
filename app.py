@@ -5,7 +5,7 @@ from routes import dashboard, add_button, set_columns, app_background, settings,
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service, get_svx_profiles, \
-    switch_svxlink_profile
+    switch_svxlink_profile, restore_original_svxlink_config
 from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
@@ -69,6 +69,14 @@ def create_app():
     def switch_svxlink_profile_route():
         profile_name = request.json.get('profile')
         success, message = switch_svxlink_profile(profile_name)
+        if success:
+            return jsonify({"success": True, "message": message}), 200
+        else:
+            return jsonify({"success": False, "message": message}), 500
+
+    @app.route('/api/restore_default_profile', methods=['POST'])
+    def restore_default_profile():
+        success, message = restore_original_svxlink_config()
         if success:
             return jsonify({"success": True, "message": message}), 200
         else:

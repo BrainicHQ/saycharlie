@@ -14,8 +14,8 @@ def system_check():
     if not sys.platform.startswith('linux'):
         error_msg = "Unsupported operating system for this script."
         logging.error(error_msg)
-        return False, error_msg
-    return True, "System check passed."
+        return False, error_msg  # Indicate failure and provide an error message for the API
+    return True
 
 
 def send_dtmf_to_svxlink(dtmf_code, dtmf_ctrl_pty):
@@ -33,9 +33,9 @@ def is_svxlink_service_running():
     try:
         output = subprocess.check_output(["systemctl", "is-active", "svxlink"], universal_newlines=True)
         return output.strip() == "active", "SvxLink service is active"
-    except subprocess.CalledProcessError:
-        logging.error("systemctl not found or SvxLink service is not active.")
-        return False, "systemctl not found or SvxLink service is not active"
+    except FileNotFoundError:
+        logging.error("systemctl not found, please ensure this script is run on a systemd-based Linux system.")
+        return False, "systemctl not found"
 
 
 def find_config_file():
@@ -89,9 +89,9 @@ def process_dtmf_request():
 
 
 def start_svxlink_service():
-    system_compatible, system_message = system_check()
+    system_compatible, system_message = system_check()  # Check system compatibility
     if not system_compatible:
-        return False, system_message
+        return False, system_message  # Return error message for the API
 
     service_active, message = is_svxlink_service_running()
     if service_active:
@@ -101,21 +101,21 @@ def start_svxlink_service():
     try:
         subprocess.run(["systemctl", "start", "svxlink"], check=True)
         logging.info("SvxLink service started successfully.")
-        return True, "SvxLink service started successfully."
+        return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to start SvxLink service: {e}")
         return False, str(e)
 
 
 def restart_svxlink_service():
-    system_compatible, system_message = system_check()
+    system_compatible, system_message = system_check()  # Check system compatibility
     if not system_compatible:
-        return False, system_message
+        return False, system_message  # Return error message for the API
 
     try:
         subprocess.run(["systemctl", "restart", "svxlink"], check=True)
         logging.info("SvxLink service restarted successfully.")
-        return True, "SvxLink service restarted successfully."
+        return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart SvxLink service: {e}")
         return False, str(e)
@@ -128,7 +128,7 @@ def get_svx_profiles():
     """
     svx_profiles = []
     svxlink_path = Path('uploads/')
-    active_profile = get_active_profile()
+    active_profile = get_active_profile()  # Assumes this function returns the name of the active profile without '.conf'
 
     if svxlink_path.exists():
         for file in svxlink_path.iterdir():
@@ -160,11 +160,15 @@ def switch_svxlink_profile(profile_name):
     """
     Switch the original svxlink configuration file to a symlink pointing to the selected profile.
     """
+    try:
+        config_file, message = find_config_file()
+    except Exception as e:
+        return False, str(e)
+
     success, message = backup_original_svxlink_config()
     if not success:
         return False, message
 
-    config_file, message = find_config_file()
     if config_file:
         # Construct the profile_path with a full path starting from the script's current directory
         current_dir = Path(__file__).parent

@@ -100,6 +100,11 @@
                 Activate Profile
             </button>
             <p x-text="message" class="mt-4 text-green-500"></p>
+            <!-- Restore the default profile -->
+            <button @click="restoreDefaultProfile" x-show="selectedProfile !== 'default'"
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mt-4">
+                Restore Default Profile
+            </button>
         </div>
     </section>
 
@@ -232,6 +237,29 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({profile: this.selectedProfile})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.message = `Profile switched successfully: ${data.message}`;
+                            this.fetchProfiles(); // Refresh profiles to update active status
+                        } else {
+                            this.message = `Failed to switch profile: ${data.message}`;
+                            console.error('Error:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        this.message = `Error: ${error}`;
+                        console.error('Error:', error);
+                    });
+            },
+
+            restoreDefaultProfile: function () {
+                fetch('/api/restore_default_profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
                 })
                     .then(response => response.json())
                     .then(data => {
