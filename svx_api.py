@@ -14,8 +14,8 @@ def system_check():
     if not sys.platform.startswith('linux'):
         error_msg = "Unsupported operating system for this script."
         logging.error(error_msg)
-        return False, error_msg  # Indicate failure and provide an error message for the API
-    return True
+        return False, error_msg
+    return True, "System check passed."
 
 
 def send_dtmf_to_svxlink(dtmf_code, dtmf_ctrl_pty):
@@ -33,31 +33,34 @@ def is_svxlink_service_running():
     try:
         output = subprocess.check_output(["systemctl", "is-active", "svxlink"], universal_newlines=True)
         return output.strip() == "active", "SvxLink service is active"
-    except FileNotFoundError:
-        logging.error("systemctl not found, please ensure this script is run on a systemd-based Linux system.")
-        return False, "systemctl not found"
+    except subprocess.CalledProcessError:
+        logging.error("systemctl not found or SvxLink service is not active.")
+        return False, "systemctl not found or SvxLink service is not active"
 
 
 def find_config_file():
-    user_config_path = Path.home() / ".svxlink" / "svxlink.conf"
-    if user_config_path.exists():
-        return str(user_config_path), "User-specific configuration found."
-    system_config_path = Path("/etc/svxlink/svxlink.conf")
-    if system_config_path.exists():
-        return str(system_config_path), "System-wide configuration found."
+    config_locations = [
+        Path.home() / ".svxlink" / "svxlink.conf",  # User-specific config
+        Path("/etc/svxlink/svxlink.conf"),  # System-wide config
+    ]
+
+    for config_path in config_locations:
+        if config_path.exists():
+            return str(config_path), "Configuration file found."
 
     service_active, message = is_svxlink_service_running()
     if service_active:
         try:
-            exec_start_output = subprocess.check_output(["systemctl", "show", "--property=ExecStart", "svxlink"],
-                                                        universal_newlines=True)
+            exec_start_output = subprocess.check_output(
+                ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
+            )
             config_file_match = re.search(r'--config=(\S+)', exec_start_output)
             if config_file_match:
-                return config_file_match.group(1), "Config file found in service properties."
-            logging.error("No config file specified in service properties.")
+                return config_file_match.group(1), "Configuration file found in service properties."
+            logging.error("No configuration file specified in service properties.")
         except subprocess.CalledProcessError as e:
-            logging.error(f"Error while trying to retrieve configuration from service: {e}")
-        return None, "Failed to locate configuration file."
+            logging.error(f"Error retrieving configuration from service: {e}")
+
     return None, "SvxLink configuration file not found."
 
 
@@ -86,9 +89,9 @@ def process_dtmf_request():
 
 
 def start_svxlink_service():
-    system_compatible, system_message = system_check()  # Check system compatibility
+    system_compatible, system_message = system_check()
     if not system_compatible:
-        return False, system_message  # Return error message for the API
+        return False, system_message
 
     service_active, message = is_svxlink_service_running()
     if service_active:
@@ -98,21 +101,21 @@ def start_svxlink_service():
     try:
         subprocess.run(["systemctl", "start", "svxlink"], check=True)
         logging.info("SvxLink service started successfully.")
-        return True
+        return True, "SvxLink service started successfully."
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to start SvxLink service: {e}")
         return False, str(e)
 
 
 def restart_svxlink_service():
-    system_compatible, system_message = system_check()  # Check system compatibility
+    system_compatible, system_message = system_check()
     if not system_compatible:
-        return False, system_message  # Return error message for the API
+        return False, system_message
 
     try:
         subprocess.run(["systemctl", "restart", "svxlink"], check=True)
         logging.info("SvxLink service restarted successfully.")
-        return True
+        return True, "SvxLink service restarted successfully."
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart SvxLink service: {e}")
         return False, str(e)
@@ -125,7 +128,7 @@ def get_svx_profiles():
     """
     svx_profiles = []
     svxlink_path = Path('uploads/')
-    active_profile = get_active_profile()  # Assumes this function returns the name of the active profile without '.conf'
+    active_profile = get_active_profile()
 
     if svxlink_path.exists():
         for file in svxlink_path.iterdir():
@@ -197,7 +200,7 @@ def backup_original_svxlink_config():
     config_file, message = find_config_file()
     if config_file:
         backup_file = Path(config_file).with_suffix('.bak')
-        if not backup_file.exists():  # Check if backup already exists
+        if not backup_file.exists():
             try:
                 Path(config_file).replace(backup_file)
                 logging.info(f"Original configuration file backed up to: {backup_file}")
@@ -217,12 +220,12 @@ def restore_original_svxlink_config():
     config_file, message = find_config_file()
     if config_file:
         backup_file = Path(config_file).with_suffix('.bak')
-        if backup_file.exists():  # Check if backup file exists
+        if backup_file.exists():
             try:
                 Path(backup_file).replace(config_file)
                 logging.info(f"Original configuration file restored from backup.")
                 return True, "Original configuration file restored from backup."
-            except Exception as e:  # Broader exception handling
+            except Exception as e:
                 logging.error(f"Failed to restore original configuration file from backup: {e}")
                 return False, str(e)
         else:

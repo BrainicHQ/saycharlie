@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Last 10 Talkers</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+            integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+            crossorigin="anonymous"></script>
 </head>
 <body class="bg-gray-100">
 <div class="container mx-auto p-4">
@@ -39,5 +42,31 @@
         <p>&copy; 2024 - All rights reserved</p>
     </div>
 </footer>
+<script>
+    const socket = io();
+    socket.on('update_last_talker', function (talker) {
+        const table = document.querySelector('tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="py-4 px-6">${talker.stop_date_time}</td>
+            <td class="py-4 px-6">${talker.callsign}</td>
+            <td class="py-4 px-6">${talker.name}</td>
+            <td class="py-4 px-6">${talker.tg_number}</td>
+            <td class="py-4 px-6">${talker.tg_name}</td>
+        `;
+
+        // Add the new row to the top of the table if is not the same like the first row
+        if (table.rows.length > 0) {
+            const firstRow = table.rows[0];
+            if (firstRow.cells[1].textContent !== talker.callsign) {
+                table.insertBefore(row, firstRow);
+            }
+        } else {
+            // Add the new row to the table if is empty
+            table.appendChild(row);
+        }
+
+    });
+</script>
 </body>
 </html>

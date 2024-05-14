@@ -5,7 +5,26 @@
 {% block content %}
     <!-- Display category buttons -->
     {% for button in buttons_in_category %}
-        <button onclick="window.location.href='{{ button.action }}'"
+        <button onclick="sendDTMF('{{ button.action }}')"
                 class="standalone-button glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
     {% endfor %}
+    <script>
+        function sendDTMF(dtmf_code) {
+            fetch('/api/send_dtmf', {
+                method: 'POST',
+                body: JSON.stringify({dtmf_code: dtmf_code}),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => {
+                if (response.ok) {
+                    console.log('DTMF ' + dtmf_code + ' sent successfully');
+                    alert('DTMF ' + dtmf_code + ' sent successfully');
+                } else {
+                    console.error('Failed to send DTMF');
+                    alert('Failed to send DTMF: ' + response.statusText);
+                }
+            });
+        }
+    </script>
 {% endblock %}
