@@ -48,21 +48,17 @@ def delete_file(filename):
 def dashboard():
     settings_data = load_settings()
 
-    for button in settings_data['buttons']:
-        if button.get('isCategory'):
-            button['encoded_label'] = urllib.parse.quote(button['label'])
-
     return render_template('dashboard.html', buttons=settings_data['buttons'],
                            columns=settings_data['columns'], app_background=settings_data['app_background'])
 
 
-def category(category_name):
+def category(category_uuid):
     settings_data = load_settings()
     category_data = settings_data['buttons']
     buttons_in_category = []
     # if button label is equal to category name, return buttons in that category
     for button in category_data:
-        if 'category' in button and button['category'] == category_name:
+        if button.get('category') == category_uuid:
             buttons_in_category.append(button)
     return render_template('category.html', app_background=settings_data['app_background'],
                            columns=settings_data['columns'],
@@ -73,8 +69,10 @@ def add_button():
     try:
         settings_data = load_settings()
         data = request.json  # Access JSON data sent by Alpine.js
+        new_uuid = str(uuid.uuid4())  # Generate a new UUID for each new button
 
         new_button = {
+            'id': new_uuid,
             'label': data['label'],
             'color': data['color'],
             'category': data.get('category'),

@@ -42,7 +42,7 @@
                         <option value="">None</option>
                         {% for button in buttons %}
                             {% if button.isCategory %}
-                                <option value="{{ button.label }}">{{ button.label }}</option>
+                                <option value="{{ button.id }}">{{ button.label }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>

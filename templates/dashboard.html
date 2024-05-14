@@ -25,7 +25,7 @@
     <!-- Display category buttons -->
     {% for button in buttons %}
         {% if button.isCategory %}
-            <a href="category?name={{ button.encoded_label }}" data-category-label="{{ button.label }}"
+            <a href="category?id={{ button.id }}" data-category-label="{{ button.label }}"
                class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</a>
         {% endif %}
     {% endfor %}

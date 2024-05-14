@@ -161,8 +161,8 @@ def create_app():
 
     @app.route('/category', methods=['GET'])
     def category_route():
-        category_name = request.args.get('name')
-        return category(category_name)
+        category_uuid = request.args.get('id')
+        return category(category_uuid)
 
     # Background thread to monitor logs
     def start_log_monitor():
