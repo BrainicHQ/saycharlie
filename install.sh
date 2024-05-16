@@ -21,8 +21,8 @@
 #  Author: Silviu Stroe
 #
 
-# Define the application's directory
-APP_DIR="$(dirname "$0")"
+# Define the application's directory with an absolute path
+APP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 echo "Starting the installation of the saycharlie SVX Dashboard..."
 
