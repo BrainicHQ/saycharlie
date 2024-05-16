@@ -3,6 +3,10 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)  
 [![GitHub issues](https://img.shields.io/github/issues/BrainicHQ/saycharlie)](https://https://github.com/BrainicHQ/saycharlie/issues)
 
+<p align="center">
+  <img src="/saycharlie-dashboard.jpg" width="400">
+</p>
+
 ## Overview
 
 saycharlie is a comprehensive dashboard designed to manage and interact with SVXLink, a general-purpose voice service
