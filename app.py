@@ -48,7 +48,7 @@ def create_app():
     app = Flask(__name__)
     api = HamRadioAPI()
     socketio = SocketIO(app)
-    log_path = 'logs/svxlink'  # get_log_file_path()
+    log_path = get_log_file_path()
     try:
         if log_path is None:
             raise Exception("Log file not found.")
