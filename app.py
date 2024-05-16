@@ -46,7 +46,7 @@ def create_app():
         "_http._tcp.local.",
         "SVXDashboard._http._tcp.local.",
         addresses=[socket.inet_aton(local_ip)],
-        port=8000,
+        port=8337,
         properties={},
         server="saycharlie.local."
     )
@@ -205,4 +205,4 @@ app, socketio, register_service = create_app()
 
 if __name__ == '__main__':
     register_service()  # Register the service with Zeroconf
-    socketio.run(app, host='0.0.0.0', port=8000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8337, debug=True)
