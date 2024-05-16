@@ -30,6 +30,13 @@ def create_app():
     api = HamRadioAPI()
     socketio = SocketIO(app)
     log_path = get_log_file_path()
+    try:
+        if log_path is None:
+            raise Exception("Log file not found.")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        exit(1)
+
     log_monitor = LogMonitor(log_path, socketio)
 
     # Get local IP address to advertise
@@ -41,7 +48,7 @@ def create_app():
         addresses=[socket.inet_aton(local_ip)],
         port=8000,
         properties={},
-        server="dashboard.local."
+        server="saycharlie.local."
     )
 
     # Register the service with Zeroconf

@@ -42,6 +42,10 @@ def get_log_file_path():
     """
     Attempt to find the SVXLink log file path directly from service properties or fall back to the default location.
     """
+    # system check using the system_check function
+    system_compatible = system_check()
+    if not system_compatible:
+        return None, "Unsupported system."
     try:
         exec_start_output = subprocess.check_output(
             ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
