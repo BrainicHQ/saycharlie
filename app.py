@@ -4,7 +4,7 @@ from routes import dashboard, add_button, set_columns, app_background, settings,
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name
 from threading import Thread
 from log_monitor import LogMonitor
-from svx_api import process_dtmf_request, start_svxlink_service, restart_svxlink_service, get_svx_profiles, \
+from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
     switch_svxlink_profile, restore_original_svxlink_config
 from zeroconf import ServiceInfo, Zeroconf
 import socket
@@ -63,7 +63,15 @@ def create_app():
 
     @app.route('/api/profiles', methods=['GET'])
     def get_svx_profiles_route():
-        return get_svx_profiles()
+        try:
+            profiles, error_message = get_svx_profiles()
+            if profiles is not None:
+                return jsonify(profiles), 200
+            else:
+                return jsonify({"error": error_message}), 400  # or another appropriate error status
+        except Exception as e:
+            # General exception catch to handle unexpected errors gracefully
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/api/switch_profile', methods=['POST'])
     def switch_svxlink_profile_route():
@@ -123,9 +131,9 @@ def create_app():
         else:
             return jsonify({"success": False, "message": message}), 500
 
-    @app.route('/start_svxlink', methods=['POST'])
-    def start_svxlink_route():
-        success, message = start_svxlink_service()
+    @app.route('/stop_svxlink', methods=['POST'])
+    def stop_svxlink_route():
+        success, message = stop_svxlink_service()
         if success:
             return jsonify({"success": True, "message": "SvxLink service started successfully."}), 200
         else:

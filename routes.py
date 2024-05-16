@@ -7,7 +7,7 @@ from config import load_settings, save_settings
 import urllib.parse
 import os
 
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'profile-uploads/'
 ALLOWED_EXTENSIONS = {'conf'}
 
 

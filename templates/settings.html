@@ -4,361 +4,424 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
 {% endblock %}
- {% block heading %}Settings{% endblock %}
+{% block heading %}Settings{% endblock %}
 {% block content %}
 
 
-<div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg space-y-8">
-    <h1 class="text-3xl font-bold mb-6 text-center">Settings</h1>
+    <div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg space-y-8">
+        <h1 class="text-3xl font-bold mb-6 text-center">Settings</h1>
 
-    <!-- Form for adding buttons -->
-    <section class="bg-gray-50 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4">Add Button</h2>
-        <div x-data="buttonManager()">
-            <form @submit.prevent="addButton()">
-                <div class="mb-4">
-                    <label for="label" class="block text-sm font-semibold mb-2">Button Label:</label>
-                    <input type="text" id="label" x-model="newButton.label" required
-                           class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-                </div>
-                <div class="mb-4">
-                    <label for="action" class="block text-sm font-semibold mb-2">Button Action:</label>
-                    <input type="text" id="action" x-model="newButton.action" :disabled="newButton.isCategory" required
-                           class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-                </div>
-                <div class="mb-4">
-                    <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
-                    <input type="color" id="color" x-model="newButton.color"
-                           class="h-10 w-10 border-2 border-gray-300 rounded">
-                </div>
-                <div class="flex items-center mb-4">
-                    <input type="checkbox" id="parent_category" x-model="newButton.isCategory" class="mr-2 h-4 w-4">
-                    <label for="parent_category" class="text-sm font-semibold">Is Parent Category</label>
-                </div>
-                <div class="mb-4">
-                    <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
-                    <select id="category" x-model="newButton.category" :disabled="newButton.isCategory"
-                            class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
-                        <option value="">None</option>
-                        {% for button in buttons %}
-                            {% if button.isCategory %}
-                                <option value="{{ button.id }}">{{ button.label }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit"
+        <!-- Form for adding buttons -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4">Add Button</h2>
+            <div x-data="buttonManager()">
+                <form @submit.prevent="addButton()">
+                    <div class="mb-4">
+                        <label for="label" class="block text-sm font-semibold mb-2">Button Label:</label>
+                        <input type="text" id="label" x-model="newButton.label" required
+                               class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+                    </div>
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="parent_category" x-model="newButton.isCategory" class="mr-2 h-4 w-4">
+                        <label for="parent_category" class="text-sm font-semibold">Is Parent Category</label>
+                    </div>
+                    <div class="mb-4">
+                        <label for="action" class="block text-sm font-semibold mb-2">Button DTMF:</label>
+                        <input type="text" id="action" x-model="newButton.action" :disabled="newButton.isCategory"
+                               required
+                               class="border border-gray-400 rounded-md p-2 w-full shadow-sm">
+                    </div>
+                    <div class="mb-4">
+                        <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
+                        <input type="color" id="color" x-model="newButton.color"
+                               class="h-10 w-10 border-2 border-gray-300 rounded">
+                    </div>
+                    <div class="mb-4">
+                        <label for="category" class="block text-sm font-semibold mb-2">Category (optional):</label>
+                        <select id="category" x-model="newButton.category" :disabled="newButton.isCategory"
+                                :class="newButton.isCategory ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-gray-400 bg-white cursor-pointer'"
+                                class="border rounded-md p-2 w-full shadow-sm">
+                            <option value="">None</option>
+                            {% for button in buttons %}
+                                {% if button.isCategory %}
+                                    <option value="{{ button.id }}">{{ button.label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                        Save Button
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Form for adjusting the number of columns -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4">Adjust Columns</h2>
+            <div x-data="{ columns: {{ columns }} }">
+                <label for="columns" class="block text-sm font-semibold mb-2">Number of Columns:</label>
+                <input type="number" x-model="columns" min="1" max="5"
+                       class="border border-gray-400 rounded-md p-2 w-full shadow-sm mb-4">
+                <button @click.prevent="saveColumns"
                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-                    Save Button
-                </button>
-            </form>
-        </div>
-    </section>
-
-    <!-- Form for adjusting the number of columns -->
-    <section class="bg-gray-50 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4">Adjust Columns</h2>
-        <div x-data="{ columns: {{ columns }} }">
-            <label for="columns" class="block text-sm font-semibold mb-2">Number of Columns:</label>
-            <input type="number" x-model="columns" min="1" max="5"
-                   class="border border-gray-400 rounded-md p-2 w-full shadow-sm mb-4">
-            <button @click.prevent="saveColumns"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-                Save Columns
-            </button>
-        </div>
-    </section>
-
-    <!-- Form for setting the background color -->
-    <section class="bg-gray-50 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4">Set Background Color</h2>
-        <div x-data="{ backgroundColor: '{{ background }}' }">
-            <label for="background" class="block text-sm font-semibold mb-2">App Background Color:</label>
-            <div class="flex items-center space-x-4">
-                <input type="color" x-model="backgroundColor" class="h-10 w-10 border-2 border-gray-300 rounded mb-4">
-                <button @click.prevent="saveBackgroundColor"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mb-4">
-                    Save Background
+                    Save Columns
                 </button>
             </div>
-        </div>
-    </section>
+        </section>
 
-
-    <!-- Form for selecting the active profile -->
-    <section class="bg-gray-50 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4">Switch Profile</h2>
-        <div x-data="profileSwitcher()" x-init="fetchProfiles()">
-            <select x-model="selectedProfile" class="block w-full p-2 border rounded mb-4">
-                <template x-for="profile in profiles" :key="profile.name">
-                    <option x-text="profile.name + (profile.isActive ? ' (Active)' : '')"
-                            :value="profile.name"></option>
-                </template>
-            </select>
-            <button @click="switchProfile"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-                Activate Profile
-            </button>
-            <p x-text="message" class="mt-4 text-green-500"></p>
-            <!-- Restore the default profile -->
-            <button @click="restoreDefaultProfile" x-show="selectedProfile !== 'default'"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mt-4">
-                Restore Default Profile
-            </button>
-        </div>
-    </section>
-
-    <!-- Form for managing groups -->
-    <section class="bg-gray-50 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4">Manage Groups</h2>
-        <div x-data="groupsManager()" x-init="fetchGroups()">
-            <div class="mb-4">
-                <button @click="addGroup()"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Add Group
-                </button>
-            </div>
-            <template x-for="(group, index) in groups" :key="index">
-                <div class="bg-white p-4 mb-2 rounded shadow-md flex items-center justify-between">
-                    <div>
-                        <input x-model="group.number" class="mr-2 px-2 py-1 border rounded" placeholder="Number"
-                               required>
-                        <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
-                    </div>
-                    <div>
-                        <button @click="saveGroup(group, index)"
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
-                            Save
-                        </button>
-                        <button @click="deleteGroup(group, index)"
-                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                            Delete
-                        </button>
-                    </div>
+        <!-- Form for setting the background color -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4">Set Background Color</h2>
+            <div x-data="{ backgroundColor: '{{ app_background }}' }">
+                <label for="background" class="block text-sm font-semibold mb-2">App Background Color:</label>
+                <div class="flex items-center space-x-4">
+                    <input type="color" x-model="backgroundColor"
+                           class="h-10 w-10 border-2 border-gray-300 rounded mb-4">
+                    <button @click.prevent="saveBackgroundColor"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mb-4">
+                        Save Background
+                    </button>
                 </div>
-            </template>
-        </div>
-    </section>
-</div>
-<script>
-    function buttonManager() {
-        return {
-            newButton: {label: '', action: '', color: '#ffffff', isCategory: false, category: ''},
+            </div>
+        </section>
 
-            addButton() {
-                fetch('/add_button', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(this.newButton)
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        alert(data.message); // Display success or error message
-                        if (data.success) {
-                            this.resetForm(); // Clear the form after successful submission
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error adding button:', error);
-                        alert('Failed to add button. Please try again.');
-                    });
-            },
 
-            resetForm() {
-                this.newButton = {label: '', action: '', color: '#ffffff', isCategory: false, category: ''};
-            }
-        };
-    }
+        <!-- Form for selecting the active profile -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4">SVX Management</h2>
+            <div x-data="profileSwitcher()" x-init="fetchProfiles()">
+                <select x-model="selectedProfile" class="block w-full p-2 border rounded mb-4">
+                    <template x-for="profile in profiles" :key="profile.name">
+                        <option x-text="profile.name + (profile.isActive ? ' (Active)' : '')"
+                                :value="profile.name"></option>
+                    </template>
+                </select>
+                <button @click="switchProfile"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                    Activate Profile
+                </button>
+                <p x-text="message" class="mt-4 text-green-500"></p>
+                <!-- Restore the default profile -->
+                <button @click="restoreDefaultProfile" x-show="selectedProfile !== 'default'"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mt-4">
+                    Restore Default Profile
+                </button>
+            </div>
+            <br>
+            <hr>
+            <div class="mt-4">
+                <button onclick="startSvxLink()"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                    Re/Start SVXLink
+                </button>
+            </div>
+            <div class="mt-4">
+                <button onclick="stopSvxLink()"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                    Stop SVXLink
+                </button>
+        </section>
 
-    function saveColumns() {
-        fetch('/set_columns', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({columns: this.columns})
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        }).then(data => {
-            alert(data.message); // Display success or error message
-        }).catch(error => {
-            console.error('Error saving columns:', error);
-            alert('Failed to save columns. Please try again.');
-        });
-    }
 
-    function saveBackgroundColor() {
-        fetch('/app_background', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({background: this.backgroundColor})
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        }).then(data => {
-            alert(data.message); // Display success or error message
-        }).catch(error => {
-            console.error('Error updating background color:', error);
-            alert('Failed to update background color. Please try again.');
-        });
-    }
-</script>
-<script>
-    function profileSwitcher() {
-        return {
-            profiles: [],
-            selectedProfile: '',
-            message: '',
+        <!-- Form for managing groups -->
+        <section class="bg-gray-50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-bold mb-4">Manage Groups</h2>
+            <div x-data="groupsManager()" x-init="fetchGroups()">
+                <div class="mb-4">
+                    <button @click="addGroup()"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Add Group
+                    </button>
+                </div>
+                <template x-for="(group, index) in groups" :key="index">
+                    <div class="bg-white p-4 mb-2 rounded shadow-md flex items-center justify-between">
+                        <div>
+                            <input x-model="group.number" class="mr-2 px-2 py-1 border rounded" placeholder="Number"
+                                   required>
+                            <input x-model="group.name" class="px-2 py-1 border rounded" placeholder="Name" required>
+                        </div>
+                        <div>
+                            <button @click="saveGroup(group, index)"
+                                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
+                                Save
+                            </button>
+                            <button @click="deleteGroup(group, index)"
+                                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+    </div>
+    <script>
+        function buttonManager() {
+            return {
+                newButton: {label: '', action: '', color: '#ffffff', isCategory: false, category: ''},
 
-            fetchProfiles: function () {
-                fetch('/api/profiles')
-                    .then(response => response.json())
-                    .then(data => {
-                        this.profiles = data;
-                        // Set selectedProfile to the first active profile found, or the first profile if none are active
-                        const activeProfile = this.profiles.find(p => p.isActive);
-                        this.selectedProfile = activeProfile ? activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
+                addButton() {
+                    fetch('/add_button', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.newButton)
                     })
-                    .catch(error => console.error('Error loading the profiles:', error));
-            },
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            alert(data.message); // Display success or error message
+                            if (data.success) {
+                                this.resetForm(); // Clear the form after successful submission
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error adding button:', error);
+                            alert('Failed to add button. Please try again.');
+                        });
+                },
 
-            switchProfile: function () {
-                fetch('/api/switch_profile', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({profile: this.selectedProfile})
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.message = `Profile switched successfully: ${data.message}`;
-                            this.fetchProfiles(); // Refresh profiles to update active status
-                        } else {
-                            this.message = `Failed to switch profile: ${data.message}`;
-                            console.error('Error:', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        this.message = `Error: ${error}`;
-                        console.error('Error:', error);
-                    });
-            },
-
-            restoreDefaultProfile: function () {
-                fetch('/api/restore_default_profile', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.message = `Profile switched successfully: ${data.message}`;
-                            this.fetchProfiles(); // Refresh profiles to update active status
-                        } else {
-                            this.message = `Failed to switch profile: ${data.message}`;
-                            console.error('Error:', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        this.message = `Error: ${error}`;
-                        console.error('Error:', error);
-                    });
-            }
-        };
-    }
-</script>
-<script>
-    function groupsManager() {
-        return {
-            groups: [],
-            fetchGroups() {
-                fetch('/api/groups')
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                alert("Failed to load groups: " + data.message);
-                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.groups = data;
-                    })
-                    .catch(error => console.error('Error loading groups:', error));
-            },
-            addGroup() {
-                this.groups.push({id: '', number: '', name: '', isNew: true});
-            },
-            saveGroup(group, index) {
-                if (!group.number.trim() || !group.name.trim()) {
-                    alert("Both the number and name are required.");
-                    return;
+                resetForm() {
+                    this.newButton = {label: '', action: '', color: '#ffffff', isCategory: false, category: ''};
                 }
-                const url = group.isNew ? '/api/groups' : `/api/groups/${group.id}`; // Use UUID for updates
-                const method = group.isNew ? 'POST' : 'PUT';
-                const body = {number: group.number, name: group.name};
+            };
+        }
 
-                fetch(url, {
-                    method: method,
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(body)
-                })
-                    .then(response => {
-                        if (!response.ok) { // Checks if the status code is not in the range 200-299
-                            return response.json().then(data => {
-                                alert(data.message); // Example of alerting the error message
-                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Success:', data);
-                        alert(data.message);
-                        if (group.isNew) {
-                            group.isNew = false;
-                            group.id = data.id; // Update the ID from the server response
-                        }
-                    })
-                    .catch(error => console.error('Error saving group:', error));
-            },
-            deleteGroup(group, index) {
-                if (!group.id) {
-                    this.groups.splice(index, 1);
-                    return;
+        function saveColumns() {
+            fetch('/set_columns', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({columns: this.columns})
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-                fetch(`/api/groups/${group.id}`, { // Use UUID for deletion
-                    method: 'DELETE'
-                })
-                    .then(response => {
-                        if (!response.ok) { // Check response status
-                            return response.json().then(data => {
-                                alert(data.message); // Show error message
-                                throw new Error(`HTTP error ${response.status}: ${data.message}`);
-                            });
-                        }
-                        return response.json(); // Optional: if you expect data back
-                    })
-                    .then(() => {
-                        console.log('Group deleted successfully');
-                        this.groups.splice(index, 1); // Remove group from the local model
-                    })
-                    .catch(error => console.error('Error deleting group:', error));
+                return response.json();
+            }).then(data => {
+                alert(data.message); // Display success or error message
+            }).catch(error => {
+                console.error('Error saving columns:', error);
+                alert('Failed to save columns. Please try again.');
+            });
+        }
+
+        function saveBackgroundColor() {
+            fetch('/app_background', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({background: this.backgroundColor})
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            }).then(data => {
+                alert(data.message); // Display success or error message
+            }).catch(error => {
+                console.error('Error updating background color:', error);
+                alert('Failed to update background color. Please try again.');
+            });
+        }
+
+        async function stopSvxLink() {
+            try {
+                const response = await fetch('/stop_svxlink', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+
+                if (!response.ok) {
+                    // Optionally, parse the response to get a more detailed error message if available
+                    const errorData = await response.json(); // Assuming the server sends a JSON response even on errors
+                    alert(`Failed to stop SVXLink: ${errorData.message}`);
+                    return; // Exit the function early
+                }
+
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error('Error stopping SVXLink:', error);
+                alert('Failed to stop SVXLink. Please try again.');
             }
         }
-    }
-</script>
+
+        async function restartSvxLink() {
+            try {
+                const response = await fetch('/start_svxlink', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+
+                if (!response.ok) {
+                    // Optionally, parse the response to get a more detailed error message if available
+                    const errorData = await response.json(); // Assuming the server sends a JSON response even on errors
+                    alert(`Failed to start SVXLink: ${errorData.message}`);
+                    return; // Exit the function early
+                }
+
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error('Error starting SVXLink:', error);
+                alert('Failed to start SVXLink. Please try again.');
+            }
+        }
+
+
+    </script>
+    <script>
+        function profileSwitcher() {
+            return {
+                profiles: [],
+                selectedProfile: '',
+                message: '',
+
+                fetchProfiles: function () {
+                    fetch('/api/profiles')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.profiles = data;
+                            // Set selectedProfile to the first active profile found, or the first profile if none are active
+                            const activeProfile = this.profiles.find(p => p.isActive);
+                            this.selectedProfile = activeProfile ? activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
+                        })
+                        .catch(error => console.error('Error loading the profiles:', error));
+                },
+
+                switchProfile: function () {
+                    fetch('/api/switch_profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({profile: this.selectedProfile})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.message = `Profile switched successfully: ${data.message}`;
+                                this.fetchProfiles(); // Refresh profiles to update active status
+                            } else {
+                                this.message = `Failed to switch profile: ${data.message}`;
+                                console.error('Error:', data.message);
+                            }
+                        })
+                        .catch(error => {
+                            this.message = `Error: ${error}`;
+                            console.error('Error:', error);
+                        });
+                },
+
+                restoreDefaultProfile: function () {
+                    fetch('/api/restore_default_profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.message = `Profile switched successfully: ${data.message}`;
+                                this.fetchProfiles(); // Refresh profiles to update active status
+                            } else {
+                                this.message = `Failed to switch profile: ${data.message}`;
+                                console.error('Error:', data.message);
+                            }
+                        })
+                        .catch(error => {
+                            this.message = `Error: ${error}`;
+                            console.error('Error:', error);
+                        });
+                }
+            };
+        }
+    </script>
+    <script>
+        function groupsManager() {
+            return {
+                groups: [],
+                fetchGroups() {
+                    fetch('/api/groups')
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    alert("Failed to load groups: " + data.message);
+                                    throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.groups = data;
+                        })
+                        .catch(error => console.error('Error loading groups:', error));
+                },
+                addGroup() {
+                    this.groups.push({id: '', number: '', name: '', isNew: true});
+                },
+                saveGroup(group, index) {
+                    if (!group.number.trim() || !group.name.trim()) {
+                        alert("Both the number and name are required.");
+                        return;
+                    }
+                    const url = group.isNew ? '/api/groups' : `/api/groups/${group.id}`; // Use UUID for updates
+                    const method = group.isNew ? 'POST' : 'PUT';
+                    const body = {number: group.number, name: group.name};
+
+                    fetch(url, {
+                        method: method,
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(body)
+                    })
+                        .then(response => {
+                            if (!response.ok) { // Checks if the status code is not in the range 200-299
+                                return response.json().then(data => {
+                                    alert(data.message); // Example of alerting the error message
+                                    throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Success:', data);
+                            alert(data.message);
+                            if (group.isNew) {
+                                group.isNew = false;
+                                group.id = data.id; // Update the ID from the server response
+                            }
+                        })
+                        .catch(error => console.error('Error saving group:', error));
+                },
+                deleteGroup(group, index) {
+                    if (!group.id) {
+                        this.groups.splice(index, 1);
+                        return;
+                    }
+                    fetch(`/api/groups/${group.id}`, { // Use UUID for deletion
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (!response.ok) { // Check response status
+                                return response.json().then(data => {
+                                    alert(data.message); // Show error message
+                                    throw new Error(`HTTP error ${response.status}: ${data.message}`);
+                                });
+                            }
+                            return response.json(); // Optional: if you expect data back
+                        })
+                        .then(() => {
+                            console.log('Group deleted successfully');
+                            this.groups.splice(index, 1); // Remove group from the local model
+                        })
+                        .catch(error => console.error('Error deleting group:', error));
+                }
+            }
+        }
+    </script>
 {% endblock %}
