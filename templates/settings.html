@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block extra_head %}
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+{% endblock %}
+ {% block heading %}Settings{% endblock %}
+{% block content %}
+
+
 <div class="container max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg space-y-8">
     <h1 class="text-3xl font-bold mb-6 text-center">Settings</h1>
 
@@ -361,5 +361,4 @@
         }
     }
 </script>
-</body>
-</html>
+{% endblock %}

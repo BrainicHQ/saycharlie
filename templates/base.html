@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="h-full" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +7,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[{{ app_background }}]">
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">{% block heading %}Dashboard{% endblock %}</h1>
-    <div class="grid grid-cols-{{ columns }} gap-4">
+<body class="flex flex-col min-h-screen  bg-[{{ app_background }}]">
+<div class="flex-grow">
+    <div class="container mx-auto p-4">
+        <nav class="bg-white shadow-lg rounded-lg p-3 mb-4">
+            <div class="flex items-center justify-between space-x-4">
+                <div class="flex space-x-2">
+                    <a href="/"
+                       class="flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                        🏠 <span class="hidden sm:inline ml-2">Home</span>
+                    </a>
+                    <a href="/history"
+                       class="flex items-center bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                        🕒 <span class="hidden sm:inline ml-2">Talkers activity</span>
+                    </a>
+                </div>
+                <span class="text-xl font-semibold">{% block heading %}Dashboard{% endblock %}</span>
+                <div class="flex space-x-2">
+                    <a href="/settings"
+                       class="flex items-center bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                        🔧 <span class="hidden sm:inline ml-2">Settings</span>
+                    </a>
+                    <a href="/files"
+                       class="flex items-center bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                        📄 <span class="hidden sm:inline ml-2">SVX Profiles</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
         {% block content %}{% endblock %}
+
     </div>
+    {% block audio_monitor %}{% endblock %}
 </div>
-{% block audio_monitor %}{% endblock %}
-<footer>
+
+<footer class="bg-gray-200 hidden lg:block">
     <div class="container mx-auto p-4 text-center">
         <p>&copy; 2024 - All rights reserved</p>
+        <div class="flex justify-center space-x-4">
+            <a href="#" class="text-blue-500">Contact</a>
+        </div>
     </div>
 </footer>
 </body>

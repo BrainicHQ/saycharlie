@@ -4,10 +4,12 @@
 
 {% block content %}
     <!-- Display category buttons -->
-    {% for button in buttons_in_category %}
-        <button onclick="sendDTMF('{{ button.action }}')"
-                class="standalone-button glass-button bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
-    {% endfor %}
+    <div class="grid grid-cols-{{ columns }} gap-4">
+        {% for button in buttons_in_category %}
+            <button onclick="sendDTMF('{{ button.action }}')"
+                    class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+        {% endfor %}
+    </div>
     <script>
         function sendDTMF(dtmf_code) {
             fetch('/api/send_dtmf', {

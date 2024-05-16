@@ -1,74 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>File Manager</title>
-    <!-- Import Tailwind CSS from CDN -->
+{% extends 'base.html' %}
+{% block title %}Profile Management{% endblock %}
+{% block extra_head %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.1/ace.js"></script>
+{% endblock %}
+{% block heading %}SVX Profiles{% endblock %}
+{% block content %}
     <style>
         /* Hide the editor divs initially */
         .editor {
             display: none;
         }
     </style>
-</head>
-<body class="bg-gray-100 p-8">
-<h1 class="text-2xl font-bold mb-6">Manage Configuration Files</h1>
-<form action="/files" method="post" enctype="multipart/form-data" class="mb-4">
-    <input type="file" name="file" class="border p-2 mr-2">
-    <input type="submit" value="Upload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-</form>
-<ul>
-    {% for file in files %}
-        <li class="mb-2 p-2 bg-white rounded shadow">
-            {{ file }}
-            <button type="button" onclick="toggleEditor('{{ file }}')"
-                    class="ml-2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded cursor-pointer">
-                Edit
-            </button>
-            <button type="button" onclick="window.location.href='/files/delete/{{ file }}';"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded cursor-pointer">Delete
-            </button>
-            <form id="form_{{ file }}" action="/files/edit/{{ file }}" method="post" class="editor mt-2">
-                <div id="editor_{{ file }}" style="height: 200px; width: 100%;"></div>
-                <textarea name="content" id="content_{{ file }}"
-                          style="display:none;">{{ file_contents[file] }}</textarea>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded mt-2">
-                    Save
+    <h1 class="text-2xl font-bold mb-6">Manage Configuration Files</h1>
+    <form action="/files" method="post" enctype="multipart/form-data" class="mb-4">
+        <input type="file" name="file" accept=".conf" class="border p-2 mr-2">
+        <input type="submit" value="Upload"
+               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    </form>
+    <ul>
+        {% for file in files %}
+            <li class="mb-2 p-2 bg-white rounded shadow">
+                {{ file }}
+                <button type="button" onclick="toggleEditor('{{ file }}')"
+                        class="ml-2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded cursor-pointer">
+                    Edit
                 </button>
-            </form>
-        </li>
-        <script>
-            function setupEditor(file) {
-                const editorDiv = document.getElementById('editor_' + file);
-                const editor = ace.edit(editorDiv);
-                editor.setTheme("ace/theme/monokai");
-                editor.session.setMode("ace/mode/ini");
-                const textArea = document.getElementById('content_' + file);
-                editor.session.setValue(textArea.value);
-                editor.session.on('change', function () {
-                    textArea.value = editor.getSession().getValue();
-                });
-                editorDiv.style.display = 'none'; // Hide the editor initially
-            }
+                <button type="button" onclick="window.location.href='/files/delete/{{ file }}';"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded cursor-pointer">Delete
+                </button>
+                <form id="form_{{ file }}" action="/files/edit/{{ file }}" method="post" class="editor mt-2">
+                    <div id="editor_{{ file }}" style="height: 200px; width: 100%;"></div>
+                    <textarea name="content" id="content_{{ file }}"
+                              style="display:none;">{{ file_contents[file] }}</textarea>
+                    <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded mt-2">
+                        Save
+                    </button>
+                </form>
+            </li>
+            <script>
+                function setupEditor(file) {
+                    const editorDiv = document.getElementById('editor_' + file);
+                    const editor = ace.edit(editorDiv);
+                    editor.setTheme("ace/theme/monokai");
+                    editor.session.setMode("ace/mode/ini");
+                    const textArea = document.getElementById('content_' + file);
+                    editor.session.setValue(textArea.value);
+                    editor.session.on('change', function () {
+                        textArea.value = editor.getSession().getValue();
+                    });
+                    editorDiv.style.display = 'none'; // Hide the editor initially
+                }
 
-            setupEditor('{{ file }}');
-        </script>
-    {% endfor %}
-</ul>
-<script>
-    function toggleEditor(file) {
-        const form = document.getElementById("form_" + file);
-        const editorDiv = document.getElementById('editor_' + file);
-        if (form.style.display === 'block') {
-            form.style.display = 'none';
-            editorDiv.style.display = 'none';
-        } else {
-            form.style.display = 'block';
-            editorDiv.style.display = 'block';
+                setupEditor('{{ file }}');
+            </script>
+        {% endfor %}
+    </ul>
+    <script>
+        function toggleEditor(file) {
+            const form = document.getElementById("form_" + file);
+            const editorDiv = document.getElementById('editor_' + file);
+            if (form.style.display === 'block') {
+                form.style.display = 'none';
+                editorDiv.style.display = 'none';
+            } else {
+                form.style.display = 'block';
+                editorDiv.style.display = 'block';
+            }
         }
-    }
-</script>
-</body>
-</html>
+    </script>
+{% endblock %}

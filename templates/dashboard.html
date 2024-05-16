@@ -15,43 +15,65 @@
             crossorigin="anonymous"></script>
 {% endblock %}
 {% block content %}
-    <div id="lastTalker" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Last Talker: Loading...</div>
-    <div id="talkerTimer" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Talk Duration: 0 min 0 sec</div>
-    <!-- An example of a textarea element: The keyboard type is "all", the placement is "top", and the availability of the special characters is "true". -->
-    <button class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4
-    focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-            onclick="modal.open()">Send custom DTMF
-    </button>
-    <!-- Display category buttons -->
-    {% for button in buttons %}
-        {% if button.isCategory %}
-            <a href="category?id={{ button.id }}" data-category-label="{{ button.label }}"
-               class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</a>
-        {% endif %}
-    {% endfor %}
-    <!-- Display standalone buttons -->
-    {% for button in buttons %}
-        {% if not button.isCategory and not button.category %}
-            <button onclick="sendDTMF('{{ button.action }}')"
-                    class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
-        {% endif %}
-    {% endfor %}
+    <div class="grid grid-cols-{{ columns }} gap-4">
+        <div id="lastTalker" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Last Talker: Loading...</div>
+        <div id="talkerTimer" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Talk Duration: 0 min 0 sec</div>
+        <!-- An example of a textarea element: The keyboard type is "all", the placement is "top", and the availability of the special characters is "true". -->
+        <button class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4
+    focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-semibold rounded-lg text-lg px-5 py-2 text-center"
+                onclick="modal.open()">Send custom DTMF
+        </button>
+        <button id="pttButton"
+                class="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4
+             focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-semibold rounded-lg text-lg px-5 py-2 text-center"
+                onclick="togglePTT(this)">Switch PTT ON
+        </button>
+        <!-- Display category buttons -->
+        {% for button in buttons %}
+            {% if button.isCategory %}
+                <a href="category?id={{ button.id }}" data-category-label="{{ button.label }}"
+                   class="inline-flex items-center justify-center bg-[{{ button.color }}] text-white text-lg font-semibold py-2 px-5 rounded-md text-center">{{ button.label }}</a>
+            {% endif %}
+        {% endfor %}
+        <!-- Display standalone buttons -->
+        {% for button in buttons %}
+            {% if not button.isCategory and not button.category %}
+                <button onclick="sendDTMF('{{ button.action }}')"
+                        class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+            {% endif %}
+        {% endfor %}
+    </div>
     <div class="mt-8">
-        <button id="startButton" class="bg-blue-500 text-white px-4 py-2 rounded-md">Start Measuring</button>
-        <br>
-        <div class="grid grid-cols-2 gap-4 mt-4">
-            <div class="relative">
+        <div class="flex items-center space-x-4">
+            <button id="startButton" class="bg-blue-500 text-white px-4 py-2 rounded-md whitespace-nowrap">
+                Start Measuring
+            </button>
+            <div class="relative w-full">
                 <meter id="meter" high="0.25" max="0.2" value="0"
-                       class="w-full h-12 bg-accent text-white rounded-md"
+                       class="w-full h-12 border border-gray-300 rounded-md"
                        low="0.15" optimum="0.5"></meter>
                 <div id="dBLabel"
-                     class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs text-gray-500">
+                     class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs font-semibold text-gray-950"
+                >
                     0 dB
                 </div>
             </div>
         </div>
     </div>
+
+
+
     <script>
+        function togglePTT(button) {
+            if (button.innerText === 'Switch PTT ON') {
+                button.innerText = '🗣️ Switch PTT OFF';
+                sendDTMF('Z');
+            } else {
+                button.innerText = 'Switch PTT ON';
+                sendDTMF('O');
+            }
+        }
+
         function sendDTMF(dtmf_code) {
             fetch('/api/send_dtmf', {
                 method: 'POST',
@@ -62,7 +84,6 @@
             }).then(response => {
                 if (response.ok) {
                     console.log('DTMF ' + dtmf_code + ' sent successfully');
-                    alert('DTMF ' + dtmf_code + ' sent successfully');
                 } else {
                     console.error('Failed to send DTMF');
                     alert('Failed to send DTMF: ' + response.statusText);

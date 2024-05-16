@@ -17,6 +17,7 @@ def allowed_file(filename):
 
 
 def file_manager():
+    settings_data = load_settings()
     if request.method == 'POST':
         # Check if the post request has the file part
         file = request.files.get('file')
@@ -28,7 +29,7 @@ def file_manager():
 
     files = os.listdir(UPLOAD_FOLDER)
     file_contents = {file: open(os.path.join(UPLOAD_FOLDER, file), 'r').read() for file in files}
-    return render_template('file_manager.html', files=files, file_contents=file_contents)
+    return render_template('file_manager.html', files=files, file_contents=file_contents, app_background=settings_data['app_background'])
 
 
 def edit_file(filename):
@@ -199,4 +200,4 @@ def settings():
     settings_data = load_settings()
     return render_template('settings.html', columns=settings_data['columns'], buttons=settings_data['buttons'],
                            talk_groups=settings_data.get('talk_groups', []),
-                           background=settings_data['app_background'])
+                           app_background=settings_data['app_background'])

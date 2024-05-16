@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Last 10 Talkers</title>
+{% extends 'base.html' %}
+{% block title %}History{% endblock %}
+{% block extra_head %}
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
             integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
             crossorigin="anonymous"></script>
-</head>
-<body class="bg-gray-100">
+{% endblock %}
+ {% block heading %}Talkers{% endblock %}
+{% block content %}
 <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Last 10 Talkers</h1>
+    <h1 class="text-2xl font-bold mb-4">Last Talkers</h1>
     <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -37,11 +35,6 @@
         </table>
     </div>
 </div>
-<footer class="mt-4">
-    <div class="container mx-auto p-4 text-center">
-        <p>&copy; 2024 - All rights reserved</p>
-    </div>
-</footer>
 <script>
     const socket = io();
     socket.on('update_last_talker', function (talker) {
@@ -68,5 +61,4 @@
 
     });
 </script>
-</body>
-</html>
+{% endblock %}
