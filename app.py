@@ -5,7 +5,7 @@ from routes import dashboard, add_button, set_columns, app_background, settings,
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
-    switch_svxlink_profile, restore_original_svxlink_config
+    switch_svxlink_profile, restore_original_svxlink_config, get_log_file_path
 from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
@@ -29,7 +29,8 @@ def create_app():
     app = Flask(__name__)
     api = HamRadioAPI()
     socketio = SocketIO(app)
-    log_monitor = LogMonitor('./logs/svxlink', socketio)
+    log_path = get_log_file_path()
+    log_monitor = LogMonitor(log_path, socketio)
 
     # Get local IP address to advertise
     local_ip = get_local_ip()
