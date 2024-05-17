@@ -26,14 +26,21 @@ def load_settings():
                     'columns': 2,
                     'app_background': '#f0f0f0'}
 
-    if os.path.exists('config.json') and os.path.getsize('config.json') > 0:
-        try:
-            with open('config.json', 'r') as f:
-                return json.load(f)
-        except json.decoder.JSONDecodeError:
-            print("Error: Config file is empty or invalid JSON. Using default initial data.")
+    if os.path.exists('config.json'):
+        if os.path.getsize('config.json') > 0:
+            try:
+                with open('config.json', 'r') as f:
+                    return json.load(f)
+            except json.decoder.JSONDecodeError:
+                print("Error: Config file is empty or invalid JSON. Using default initial data.")
+                return initial_data
+        else:
+            print("Error: Config file is empty. Using default initial data.")
             return initial_data
     else:
+        with open('config.json', 'w') as f:
+            json.dump(initial_data, f, indent=4)
+        print("Config file created with initial data.")
         return initial_data
 
 
