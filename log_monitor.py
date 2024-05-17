@@ -22,6 +22,7 @@ import re
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from dateutil import parser
 
 
 class LogMonitor:
@@ -54,36 +55,62 @@ class LogMonitor:
 
     def read_log(self):
         try:
-            with open(self.log_file, 'r') as file:
+            with open(self.log_file, 'rb') as file:
                 file.seek(self.last_position)
-                for line in file:
-                    self.parse_line(line)
-                self.last_position = file.tell()  # Update the last read position
+                while True:
+                    raw_line = file.readline()
+                    if not raw_line:
+                        break
+                    try:
+                        decoded_line = raw_line.decode('utf-8')
+                    except UnicodeDecodeError:
+                        try:
+                            # Attempt a different encoding
+                            decoded_line = raw_line.decode('ISO-8859-1')
+                        except UnicodeDecodeError:
+                            # Fallback to replacement for any remaining errors
+                            decoded_line = raw_line.decode('utf-8', errors='replace')
+                    self.parse_line(decoded_line)
+                self.last_position = file.tell()
         except FileNotFoundError:
             print(f"Log file '{self.log_file}' not found.")
 
     def parse_line(self, line):
-        start_pattern = r'(\d+\.\d+\.\d+ \d+:\d+:\d+): ReflectorLogic: Talker start on TG #(\d+): (\S+)'
-        stop_pattern = r'(\d+\.\d+\.\d+ \d+:\d+:\d+): ReflectorLogic: Talker stop on TG #(\d+): (\S+)'
-        if re.match(start_pattern, line):
-            match = re.search(start_pattern, line)
-            date_time, tg_number, talker_callsign = match.groups()
-            self.active_session = {'start_date_time': date_time, 'tg_number': tg_number,
-                                   'callsign': talker_callsign}
-            if len(self.talkers) >= 10:
-                self.talkers.pop(0)
-            self.talkers.insert(0, self.active_session)
-            self.socketio.emit('update_last_talker', self.active_session, namespace='/')
-        elif re.match(stop_pattern, line):
-            match = re.search(stop_pattern, line)
-            date_time, tg_number, talker_callsign = match.groups()
-            if (self.active_session and self.active_session['callsign'] == talker_callsign and
-                    self.active_session['tg_number'] == tg_number):
-                talker_start_time = time.mktime(time.strptime(self.active_session['start_date_time'],
-                                                              '%d.%m.%Y %H:%M:%S'))
-                talker_stop_time = time.mktime(time.strptime(date_time, '%d.%m.%Y %H:%M:%S'))
+        # Pattern to match any date and time sequence followed by the log structure
+        pattern = r'(\d+[\.-]\d+[\.-]\d+ \d{2}:\d{2}:\d{2}): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
+        match = re.match(pattern, line)
+        if match:
+            date_time_str, action, tg_number, talker_callsign = match.groups()
+            try:
+                date_time = parser.parse(date_time_str,
+                                         dayfirst=True)  # Assume European day-first convention as default
+                formatted_date_time = date_time.isoformat()  # Format for both internal use and display
+            except ValueError:
+                print("Date format could not be parsed:", date_time_str)
+                return  # Exit if the date cannot be parsed
+
+            if action == "start":
+                # Handling start action
+                self.active_session = {
+                    'start_date_time': formatted_date_time,
+                    'tg_number': tg_number,
+                    'callsign': talker_callsign
+                }
+                if len(self.talkers) >= 10:
+                    self.talkers.pop(0)
+                self.talkers.insert(0, self.active_session)
+                self.socketio.emit('update_last_talker', self.active_session, namespace='/')
+            elif action == "stop" and self.active_session:
+                # Handling stop action
+                talker_start_time = time.mktime(
+                    time.strptime(self.active_session['start_date_time'], '%Y-%m-%dT%H:%M:%S'))
+                talker_stop_time = time.mktime(time.strptime(formatted_date_time, '%Y-%m-%dT%H:%M:%S'))
                 duration = talker_stop_time - talker_start_time  # in seconds
-                self.active_session.update({'stop_date_time': date_time, 'stopped': True, 'duration': duration})
+                self.active_session.update({
+                    'stop_date_time': formatted_date_time,
+                    'stopped': True,
+                    'duration': duration
+                })
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
                 self.active_session = None
 
