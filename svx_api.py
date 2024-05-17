@@ -135,7 +135,7 @@ def find_config_file():
 
 
 def get_dtmf_ctrl_pty_from_config(config_file):
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(strict=False)
     try:
         config.read(config_file)
         for section in config.sections():
@@ -147,7 +147,7 @@ def get_dtmf_ctrl_pty_from_config(config_file):
 
 
 def get_ptt_ctrl_pty_from_config(config_file):
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(strict=False)
     try:
         config.read(config_file)
         for section in config.sections():
