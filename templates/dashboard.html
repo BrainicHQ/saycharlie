@@ -67,11 +67,28 @@
         function togglePTT(button) {
             if (button.innerText === 'Switch PTT ON') {
                 button.innerText = '🗣️ Switch PTT OFF';
-                sendDTMF('Z');
+                sendPTT('Z');
             } else {
                 button.innerText = 'Switch PTT ON';
-                sendDTMF('O');
+                sendPTT('O');
             }
+        }
+
+        function sendPTT(ptt_code) {
+            fetch('/api/send_ptt', {
+                method: 'POST',
+                body: JSON.stringify({ptt_code: ptt_code}),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => {
+                if (response.ok) {
+                    console.log('PTT ' + ptt_code + ' sent successfully');
+                } else {
+                    console.error('Failed to send PTT');
+                    alert('Failed to send PTT: ' + response.statusText);
+                }
+            });
         }
 
         function sendDTMF(dtmf_code) {

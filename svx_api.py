@@ -128,6 +128,41 @@ def get_dtmf_ctrl_pty_from_config(config_file):
     return None, "DTMF_CTRL_PTY not found in the configuration file."
 
 
+def get_ptt_ctrl_pty_from_config(config_file):
+    config = configparser.ConfigParser()
+    try:
+        config.read(config_file)
+        for section in config.sections():
+            if config.has_option(section, "PTY_PATH"):
+                return config.get(section, "PTY_PATH"), "PTT control PTY found."
+    except configparser.Error as e:
+        logging.error(f"Failed to parse configuration file: {e}")
+    return None, "PTT_CTRL_PTY not found in the configuration file."
+
+
+def process_ptt_request():
+    ptt_code = request.get_json().get("ptt_code")
+    config_file, message = find_config_file()
+    if config_file:
+        ptt_ctrl_pty, message = get_ptt_ctrl_pty_from_config(config_file)
+        if ptt_ctrl_pty:
+            return send_ptt_to_svxlink(ptt_code, ptt_ctrl_pty)
+        else:
+            return False, message
+    return False, message
+
+
+def send_ptt_to_svxlink(ptt_code, ptt_ctrl_pty):
+    try:
+        with open(ptt_ctrl_pty, "w") as f:
+            f.write(ptt_code)
+            logging.info(f"PTT code '{ptt_code}' sent to svxlink.")
+            return True, "Success"
+    except IOError as e:
+        logging.error(f"Failed to send PTT code due to IO error: {e}")
+        return False, str(e)
+
+
 def process_dtmf_request():
     dtmf_code = request.get_json().get("dtmf_code")
     config_file, message = find_config_file()
