@@ -67,19 +67,8 @@ def get_log_file_path():
     if not system_compatible:
         return None, "Unsupported system."
 
-    try:
-        # First, try to get the log file location from the service properties
-        exec_start_output = subprocess.check_output(
-            ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
-        )
-        log_file_match = re.search(r'--logfile=(\S+)', exec_start_output)
-        if log_file_match:
-            return log_file_match.group(1), "Log file found in service properties."
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error retrieving log file from service: {e}")
-
     # Fall back to the default log file location
-    log_file_path = Path("/var/log/svxlink/svxlink.log")
+    log_file_path = Path("/var/log/svxlink")  # assuming the log file is svxlink.log
     if log_file_path.exists():
         return str(log_file_path), "Log file found at default location."
 
@@ -113,17 +102,6 @@ def find_config_file():
     system_compatible = system_check()
     if not system_compatible:
         return None, "Unsupported system."
-
-    try:
-        # First try to get the configuration file location from the service properties
-        exec_start_output = subprocess.check_output(
-            ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
-        )
-        config_file_match = re.search(r'--config=(\S+)', exec_start_output)
-        if config_file_match:
-            return config_file_match.group(1), "Configuration file found in service properties."
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error retrieving configuration from service: {e}")
 
     # Check predefined locations if not found in service properties
     config_locations = [

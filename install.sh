@@ -70,7 +70,7 @@ Description=saycharlie SVX Dashboard
 After=network.target
 
 [Service]
-User=$USER
+User=svxlink
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/venv/bin"
 Environment="FLASK_APP=app.py"
