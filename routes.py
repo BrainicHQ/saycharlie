@@ -37,6 +37,10 @@ def allowed_file(filename):
 
 def file_manager():
     settings_data = load_settings()
+
+    # Ensure UPLOAD_FOLDER exists; create it if it doesn't
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
     if request.method == 'POST':
         # Check if the post request has the file part
         file = request.files.get('file')
@@ -47,8 +51,10 @@ def file_manager():
             return redirect(url_for('file_manager'))
 
     files = os.listdir(UPLOAD_FOLDER)
-    file_contents = {file: open(os.path.join(UPLOAD_FOLDER, file), 'r').read() for file in files}
-    return render_template('file_manager.html', files=files, file_contents=file_contents, app_background=settings_data['app_background'])
+    file_contents = {file: open(os.path.join(UPLOAD_FOLDER, file), 'r').read() for file in files if
+                     os.path.isfile(os.path.join(UPLOAD_FOLDER, file))}
+    return render_template('file_manager.html', files=files, file_contents=file_contents,
+                           app_background=settings_data['app_background'])
 
 
 def edit_file(filename):
