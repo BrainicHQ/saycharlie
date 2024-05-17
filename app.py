@@ -24,7 +24,7 @@ from routes import dashboard, add_button, set_columns, app_background, settings,
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
-    switch_svxlink_profile, restore_original_svxlink_config, get_log_file_path
+    switch_svxlink_profile, restore_original_svxlink_config, get_log_file_path, process_ptt_request
 from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
@@ -48,10 +48,13 @@ def create_app():
     app = Flask(__name__)
     api = HamRadioAPI()
     socketio = SocketIO(app)
-    log_path = get_log_file_path()
+    # Get the log file path and the status message
+    log_path, message = get_log_file_path()
+
     try:
         if log_path is None:
-            raise Exception("Log file not found.")
+            # The log file wasn't found, raise an exception with the message
+            raise Exception(message)
     except Exception as e:
         print(f"Error: {str(e)}")
         exit(1)
@@ -158,6 +161,14 @@ def create_app():
         else:
             return jsonify({"success": False, "message": message}), 500
 
+    @app.route('/api/send_ptt', methods=['POST'])
+    def send_ptt_route():
+        success, message = process_ptt_request()
+        if success:
+            return jsonify({"success": True, "message": "PTT code sent successfully."}), 200
+        else:
+            return jsonify({"success": False, "message": message}), 500
+
     @app.route('/stop_svxlink', methods=['POST'])
     def stop_svxlink_route():
         success, message = stop_svxlink_service()
@@ -224,4 +235,4 @@ app, socketio, register_service = create_app()
 
 if __name__ == '__main__':
     register_service()  # Register the service with Zeroconf
-    socketio.run(app, host='0.0.0.0', port=8337, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8337, debug=False)
