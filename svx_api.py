@@ -60,12 +60,15 @@ def is_svxlink_service_running():
 def get_log_file_path():
     """
     Attempt to find the SVXLink log file path directly from service properties or fall back to the default location.
+    If both fail, execute a shell command to parse the process command-line arguments to determine the log file path.
     """
-    # system check using the system_check function
+    # System check using the system_check function
     system_compatible = system_check()
     if not system_compatible:
         return None, "Unsupported system."
+
     try:
+        # First, try to get the log file location from the service properties
         exec_start_output = subprocess.check_output(
             ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
         )
@@ -75,24 +78,44 @@ def get_log_file_path():
     except subprocess.CalledProcessError as e:
         logging.error(f"Error retrieving log file from service: {e}")
 
+    # Fall back to the default log file location
     log_file_path = Path("/var/log/svxlink/svxlink.log")
     if log_file_path.exists():
         return str(log_file_path), "Log file found at default location."
 
-    logging.error("Log file not found in service properties or default location.")
+    # If default location check fails, use the shell command to parse process arguments
+    try:
+        shell_command = """
+        ps aux | grep '[s]vxlink' | grep -- '--logfile' | awk '{
+            for (i = 1; i <= NF; i++) {
+                split($i, a, "=");
+                if (a[1] == "--logfile" && length(a[2]) > 0) print a[2];
+            }
+        }'
+        """
+        log_file_via_process = subprocess.check_output(shell_command, shell=True, text=True).strip()
+        if log_file_via_process:
+            return log_file_via_process, "Log file found using process command-line parsing."
+
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to parse log file path from process arguments: {}".format(e))
+
+    logging.error("Log file not found in service properties, default location, or process arguments.")
     return None, "Log file not found."
 
 
 def find_config_file():
     """
     Attempt to find the SVXLink configuration file path from service properties or fall back to known locations.
+    If both fail, use a shell command to parse process command-line arguments for the configuration file path.
     """
-    # system check using the system_check function
+    # System check using the system_check function
     system_compatible = system_check()
     if not system_compatible:
         return None, "Unsupported system."
 
     try:
+        # First try to get the configuration file location from the service properties
         exec_start_output = subprocess.check_output(
             ["systemctl", "show", "--property=ExecStart", "svxlink"], universal_newlines=True
         )
@@ -112,7 +135,24 @@ def find_config_file():
         if config_path.exists():
             return str(config_path), "Configuration file found at predefined location."
 
-    logging.error("SvxLink configuration file not found in service properties or predefined locations.")
+    # If predefined locations check fails, use the shell command to parse process arguments
+    try:
+        shell_command = """
+        ps aux | grep '[s]vxlink' | grep -- '--config' | awk '{
+            for (i = 1; i <= NF; i++) {
+                split($i, a, "=");
+                if (a[1] == "--config" && length(a[2]) > 0) print a[2];
+            }
+        }'
+        """
+        config_file_via_process = subprocess.check_output(shell_command, shell=True, text=True).strip()
+        if config_file_via_process:
+            return config_file_via_process, "Configuration file found using process command-line parsing."
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to parse configuration file path from process arguments: {}".format(e))
+
+    logging.error(
+        "SvxLink configuration file not found in service properties, predefined locations, or process arguments.")
     return None, "SvxLink configuration file not found."
 
 
