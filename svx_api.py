@@ -293,6 +293,10 @@ def switch_svxlink_profile(profile_name):
         # Create a new symlink
         symlink_path.symlink_to(profile_path)
         logging.info(f"Switched to profile via symlink: {profile_name}")
+
+        # Restart the svxlink service to apply the new configuration
+        restart_svxlink_service()
+
         return True, f"Switched to profile via symlink: {profile_name}"
     except OSError as e:
         logging.error(f"Failed to switch to profile due to OS error: {e}")
