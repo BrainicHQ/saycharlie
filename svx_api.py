@@ -253,7 +253,7 @@ def get_svx_profiles():
     # Sort the profiles by name; active status is not affected by sorting
     svx_profiles.sort(key=lambda x: x['name'])
 
-    return svx_profiles
+    return svx_profiles, None
 
 
 def get_active_profile():
