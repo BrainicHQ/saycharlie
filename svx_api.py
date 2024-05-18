@@ -18,9 +18,8 @@
 #  Author: Silviu Stroe
 
 import configparser
-import re
+import os
 import subprocess
-import sys
 from pathlib import Path
 import logging
 from flask import request
@@ -28,13 +27,8 @@ from flask import request
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-
-def system_check():
-    if not sys.platform.startswith('linux'):
-        error_msg = "Unsupported operating system for this script."
-        logging.error(error_msg)
-        return False
-    return True
+path = os.environ.get('PATH')
+os.environ['PATH'] = path + ':/bin:/usr/bin'
 
 
 def send_dtmf_to_svxlink(dtmf_code, dtmf_ctrl_pty):
@@ -50,8 +44,12 @@ def send_dtmf_to_svxlink(dtmf_code, dtmf_ctrl_pty):
 
 def is_svxlink_service_running():
     try:
-        output = subprocess.check_output(["systemctl", "is-active", "svxlink"], universal_newlines=True)
-        return output.strip() == "active", "SvxLink service is active"
+        result = subprocess.run(["systemctl", "is-active", "svxlink"], text=True, capture_output=True)
+        # Check if the service is active without raising an exception for non-zero exit codes
+        if result.returncode == 0:
+            return True, "SvxLink service is active"
+        else:
+            return False, "SvxLink service is inactive or does not exist"
     except FileNotFoundError:
         logging.error("systemctl not found, please ensure this script is run on a systemd-based Linux system.")
         return False, "systemctl not found"
@@ -62,11 +60,6 @@ def get_log_file_path():
     Attempt to find the SVXLink log file path directly from service properties or fall back to the default location.
     If both fail, execute a shell command to parse the process command-line arguments to determine the log file path.
     """
-    # System check using the system_check function
-    system_compatible = system_check()
-    if not system_compatible:
-        return None, "Unsupported system."
-
     # Fall back to the default log file location
     log_file_path = Path("/var/log/svxlink")  # assuming the log file is svxlink.log
     if log_file_path.exists():
@@ -98,10 +91,6 @@ def find_config_file():
     Attempt to find the SVXLink configuration file path from service properties or fall back to known locations.
     If both fail, use a shell command to parse process command-line arguments for the configuration file path.
     """
-    # System check using the system_check function
-    system_compatible = system_check()
-    if not system_compatible:
-        return None, "Unsupported system."
 
     # Check predefined locations if not found in service properties
     config_locations = [
@@ -194,10 +183,6 @@ def process_dtmf_request():
 
 
 def stop_svxlink_service():
-    system_compatible = system_check()  # Check system compatibility
-    if not system_compatible:
-        return False, "Unsupported system."
-
     service_active, message = is_svxlink_service_running()
     if not service_active:
         logging.info("SvxLink service is not running.")
@@ -206,21 +191,17 @@ def stop_svxlink_service():
     try:
         subprocess.run(["systemctl", "stop", "svxlink"], check=True)
         logging.info("SvxLink service stopped successfully.")
-        return True
+        return True, "SvxLink service stopped successfully."
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to stop SvxLink service: {e}")
         return False, str(e)
 
 
 def restart_svxlink_service():
-    system_compatible = system_check()  # Check system compatibility
-    if not system_compatible:
-        return False, "Unsupported system."
-
     try:
         subprocess.run(["systemctl", "restart", "svxlink"], check=True)
         logging.info("SvxLink service restarted successfully.")
-        return True
+        return True, "SvxLink service restarted successfully."
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart SvxLink service: {e}")
         return False, str(e)
@@ -231,24 +212,27 @@ def get_svx_profiles():
     List all available SVXLink profiles from the /profile-uploads directory and indicate which one is active.
     Each profile is represented as a dictionary with 'name' and 'isActive' properties.
     """
-    # system check using the system_check function
-    system_compatible = system_check()
-    if not system_compatible:
-        return None, "Unsupported system."
 
     svx_profiles = []
     svxlink_path = Path('profile-uploads/')
-    active_profile = get_active_profile()
+    active_profile, is_symlink = get_active_profile()
+
+    svx_profiles.append({
+        'name': active_profile,
+        'isActive': True,
+    })
 
     if svxlink_path.exists():
         for file in svxlink_path.iterdir():
             if file.is_file() and file.suffix == '.conf':
-                profile_name = file.stem
-                # Append a dictionary with the profile name and its active status
-                svx_profiles.append({
-                    'name': profile_name,
-                    'isActive': (profile_name == active_profile)
-                })
+                # profile_name is profile absolute path
+                profile_name = str(Path(file).absolute())
+                # Append a dictionary with profile name and active status
+                if profile_name != active_profile:
+                    svx_profiles.append({
+                        'name': profile_name,
+                        'isActive': False,
+                    })
 
     # Sort the profiles by name; active status is not affected by sorting
     svx_profiles.sort(key=lambda x: x['name'])
@@ -261,12 +245,14 @@ def get_active_profile():
     Determine the currently active svxlink profile by checking which profile the symlink points to.
     """
     config_file, _ = find_config_file()
-    if config_file and Path(config_file).is_symlink():
-        return Path(config_file).resolve().stem
+    if config_file:
+        is_sym_link = os.path.islink(config_file)
+        # if is symlink, return the target of the symlink
+        return os.path.realpath(config_file), is_sym_link
     return None
 
 
-def switch_svxlink_profile(profile_name):
+def switch_svxlink_profile(profile_path):
     """
     Switch the original svxlink configuration file to a symlink pointing to the selected profile.
     """
@@ -279,8 +265,7 @@ def switch_svxlink_profile(profile_name):
         if not success:
             return False, message
 
-        current_dir = Path(__file__).parent
-        profile_path = current_dir / 'profile-uploads' / f'{profile_name}.conf'
+        profile_path = Path(profile_path)
         symlink_path = Path(config_file)
 
         # Ensure the directory for the symlink exists
@@ -292,12 +277,12 @@ def switch_svxlink_profile(profile_name):
 
         # Create a new symlink
         symlink_path.symlink_to(profile_path)
-        logging.info(f"Switched to profile via symlink: {profile_name}")
+        logging.info(f"Switched to profile via symlink: {profile_path}")
 
         # Restart the svxlink service to apply the new configuration
         restart_svxlink_service()
 
-        return True, f"Switched to profile via symlink: {profile_name}"
+        return True, f"Switched to profile via symlink: {profile_path}"
     except OSError as e:
         logging.error(f"Failed to switch to profile due to OS error: {e}")
         return False, str(e)

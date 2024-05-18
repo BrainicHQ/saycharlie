@@ -42,6 +42,11 @@ if ! dpkg -s python3-venv &>/dev/null; then
     sudo apt-get install python3-venv -y
 fi
 
+if ! dpkg -s python3-dev &>/dev/null; then
+    echo "python3-dev is not installed. Installing python3-dev..."
+    sudo apt-get install python3-dev -y
+fi
+
 # Update pip to the latest version
 echo "Updating pip to the latest version..."
 sudo pip3 install --upgrade pip

@@ -173,7 +173,7 @@ def create_app():
     def stop_svxlink_route():
         success, message = stop_svxlink_service()
         if success:
-            return jsonify({"success": True, "message": "SvxLink service started successfully."}), 200
+            return jsonify({"success": True, "message": "SvxLink service stopped successfully."}), 200
         else:
             return jsonify({"success": False, "message": message}), 500
 
