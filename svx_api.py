@@ -23,6 +23,8 @@ import subprocess
 from pathlib import Path
 import logging
 from flask import request
+import socket
+import ipaddress
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -207,6 +209,49 @@ def restart_svxlink_service():
         return False, str(e)
 
 
+def get_profile_hosts(profile_path):
+    """
+    Reads a configuration file and returns the first host specified.
+    If the first host is an IP address, returns its hostname.
+
+    Args:
+        profile_path (str): Path to the configuration file.
+
+    Returns:
+        str: The first host or its resolved hostname, or None if no hosts are found.
+    """
+    config = configparser.ConfigParser(strict=False)
+    try:
+        config.read(profile_path)
+    except configparser.Error:
+        return None
+
+    hosts = [
+        host.strip()
+        for section in config.sections()
+        for option in ["HOSTS", "HOST"]
+        if config.has_option(section, option)
+        for host in config.get(section, option).split(',')
+    ]
+
+    if hosts:
+        first_host = hosts[0]
+        try:
+            # Check if the first host is a valid IP address
+            ipaddress.ip_address(first_host)
+            try:
+                hostname = socket.gethostbyaddr(first_host)[0]
+                return hostname
+            except socket.herror:
+                logging.error(f"Failed to resolve hostname for IP address: {first_host}")
+                return first_host
+        except ValueError:
+            # Not an IP address, return as is
+            return first_host
+
+    return None
+
+
 def get_svx_profiles():
     """
     List all available SVXLink profiles from the /profile-uploads directory and indicate which one is active.
@@ -220,6 +265,7 @@ def get_svx_profiles():
     svx_profiles.append({
         'name': active_profile,
         'isActive': True,
+        'host': get_profile_hosts(active_profile),
     })
 
     if svxlink_path.exists():
@@ -232,6 +278,7 @@ def get_svx_profiles():
                     svx_profiles.append({
                         'name': profile_name,
                         'isActive': False,
+                        'host': get_profile_hosts(profile_name),
                     })
 
     # Sort the profiles by name; active status is not affected by sorting
@@ -325,6 +372,10 @@ def restore_original_svxlink_config():
             try:
                 Path(backup_file).replace(config_file)
                 logging.info(f"Original configuration file restored from backup.")
+
+                # Restart the svxlink service to apply the restored configuration
+                restart_svxlink_service()
+
                 return True, "Original configuration file restored from backup."
             except Exception as e:
                 logging.error(f"Failed to restore original configuration file from backup: {e}")

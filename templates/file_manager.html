@@ -69,20 +69,23 @@
         <div x-data="profileSwitcher()" x-init="fetchProfiles()">
             <select x-model="selectedProfile" class="block w-full p-2 border rounded mb-4">
                 <template x-for="profile in profiles" :key="profile.name">
-                    <option x-text="profile.name + (profile.isActive ? ' (Active)' : '')" :disabled="profile.isActive"
+                    <option x-text="profile.name + (profile.isActive ? ' (Active)' : '') + (profile.host ? ' - ' + profile.host : '')"
+                            :disabled="profile.isActive"
                             :value="profile.name"></option>
                 </template>
             </select>
             <button
+                    :disabled="isProfileActive"
+                    :class="{'bg-blue-500 hover:bg-blue-700': !isProfileActive, 'bg-gray-500 cursor-not-allowed': isProfileActive}"
                     @click="switchProfile"
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
                 Activate Profile
             </button>
             <p x-text="message" class="mt-4 text-green-500"></p>
             <!-- Restore the default profile -->
-            <button @click="restoreDefaultProfile" x-show="selectedProfile !== 'default'"
+            <button x-text="'Restore Default Profile: ' + activeProfile.host"
+                    @click="restoreDefaultProfile" x-show="selectedProfile !== 'default'"
                     class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out mt-4">
-                Restore Default Profile
             </button>
         </div>
         <br>
@@ -119,6 +122,7 @@
                 profiles: [],
                 selectedProfile: '',
                 message: '',
+                activeProfile: {},
 
                 fetchProfiles: function () {
                     fetch('/api/profiles')
@@ -126,10 +130,15 @@
                         .then(data => {
                             this.profiles = data;
                             // Set selectedProfile to the first active profile found, or the first profile if none are active
-                            const activeProfile = this.profiles.find(p => p.isActive);
-                            this.selectedProfile = activeProfile ? activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
+                            this.activeProfile = this.profiles.find(p => p.isActive);
+                            this.selectedProfile = this.activeProfile ? this.activeProfile.name : (this.profiles.length > 0 ? this.profiles[0].name : '');
                         })
                         .catch(error => console.error('Error loading the profiles:', error));
+                },
+
+                get isProfileActive() {
+                    const selected = this.profiles.find(p => p.name === this.selectedProfile);
+                    return selected ? selected.isActive : false;
                 },
 
                 switchProfile: function () {

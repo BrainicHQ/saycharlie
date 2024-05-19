@@ -37,14 +37,14 @@
         {% for button in buttons %}
             {% if button.isCategory %}
                 <a href="category?id={{ button.id }}" data-category-label="{{ button.label }}"
-                   class="inline-flex items-center justify-center bg-[{{ button.color }}] text-white text-lg font-semibold py-2 px-5 rounded-md text-center">{{ button.label }}</a>
+                   class="inline-flex items-center justify-center bg-[{{ button.color }}] text-[{{ button.fontColor }}] text-lg font-semibold py-2 px-5 rounded-md text-center">{{ button.label }}</a>
             {% endif %}
         {% endfor %}
         <!-- Display standalone buttons -->
         {% for button in buttons %}
             {% if not button.isCategory and not button.category %}
                 <button onclick="sendDTMF('{{ button.action }}')"
-                        class="bg-[{{ button.color }}] text-white text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
+                        class="bg-[{{ button.color }}] text-[{{ button.fontColor }}] text-lg font-semibold p-2 rounded-md">{{ button.label }}</button>
             {% endif %}
         {% endfor %}
     </div>

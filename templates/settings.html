@@ -23,7 +23,7 @@
                     </div>
                     <div class="flex items-center mb-4">
                         <input type="checkbox" id="parent_category" x-model="newButton.isCategory" class="mr-2 h-4 w-4">
-                        <label for="parent_category" class="text-sm font-semibold">Is Parent Category</label>
+                        <label for="parent_category" class="text-sm font-semibold">Make it Category</label>
                     </div>
                     <div class="mb-4">
                         <label for="action" class="block text-sm font-semibold mb-2">Button DTMF:</label>
@@ -33,7 +33,12 @@
                     </div>
                     <div class="mb-4">
                         <label for="color" class="block text-sm font-semibold mb-2">Button Color:</label>
-                        <input type="color" id="color" x-model="newButton.color"
+                        <input required type="color" id="color" x-model="newButton.color"
+                               class="h-10 w-10 border-2 border-gray-300 rounded">
+                    </div>
+                    <div class="mb-4">
+                        <label for="font_color" class="block text-sm font-semibold mb-2">Button Text Color:</label>
+                        <input required type="color" id="font_color" x-model="newButton.font_color"
                                class="h-10 w-10 border-2 border-gray-300 rounded">
                     </div>
                     <div class="mb-4">
@@ -42,11 +47,9 @@
                                 :class="newButton.isCategory ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-gray-400 bg-white cursor-pointer'"
                                 class="border rounded-md p-2 w-full shadow-sm">
                             <option value="">None</option>
-                            {% for button in buttons %}
-                                {% if button.isCategory %}
-                                    <option value="{{ button.id }}">{{ button.label }}</option>
-                                {% endif %}
-                            {% endfor %}
+                            <template x-for="button in buttons" :key="button.id">
+                                <option :value="button.id" x-text="button.label"></option>
+                            </template>
                         </select>
                     </div>
                     <button type="submit"
@@ -122,7 +125,28 @@
     <script>
         function buttonManager() {
             return {
-                newButton: {label: '', action: '', color: '#ffffff', isCategory: false, category: ''},
+                newButton: {
+                    label: '',
+                    action: '',
+                    color: '#ffffff',
+                    font_color: '#000000',
+                    isCategory: false,
+                    category: ''
+                },
+                buttons: [],  // Array to store buttons
+
+                init() {
+                    this.fetchButtons();  // Fetch existing buttons when component is initialized
+                },
+
+                fetchButtons() {
+                    fetch('/api/category-buttons')  // Adjust the endpoint as necessary
+                        .then(response => response.json())
+                        .then(data => {
+                            this.buttons = data.filter(button => button.isCategory);
+                        })
+                        .catch(error => console.error('Error loading buttons:', error));
+                },
 
                 addButton() {
                     fetch('/add_button', {
@@ -130,15 +154,11 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(this.newButton)
                     })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
+                        .then(response => response.json())
                         .then(data => {
                             alert(data.message); // Display success or error message
                             if (data.success) {
+                                this.buttons.push({...this.newButton, id: data.id});  // Add the new button to the list
                                 this.resetForm(); // Clear the form after successful submission
                             }
                         })
@@ -149,7 +169,14 @@
                 },
 
                 resetForm() {
-                    this.newButton = {label: '', action: '', color: '#ffffff', isCategory: false, category: ''};
+                    this.newButton = {
+                        label: '',
+                        action: '',
+                        color: '#ffffff',
+                        font_color: '#000000',
+                        isCategory: false,
+                        category: ''
+                    };
                 }
             };
         }

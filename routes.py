@@ -26,7 +26,7 @@ from config import load_settings, save_settings
 import urllib.parse
 import os
 
-from svx_api import get_active_profile
+from svx_api import get_active_profile, get_profile_hosts
 
 UPLOAD_FOLDER = 'profile-uploads/'
 ALLOWED_EXTENSIONS = {'conf'}
@@ -75,13 +75,13 @@ def delete_file(filename):
 
 def dashboard():
     settings_data = load_settings()
-    active_profile, _ = get_active_profile()
+    active_profile, _, = get_active_profile()
     # get file name from the path
-    profile_name = urllib.parse.unquote(os.path.basename(active_profile))
+    reflector_host = get_profile_hosts(active_profile)
 
     return render_template('dashboard.html', buttons=settings_data['buttons'],
                            columns=settings_data['columns'], app_background=settings_data['app_background'],
-                           svx_active_profile=profile_name)
+                           svx_active_profile=reflector_host)
 
 
 def category(category_uuid):
@@ -97,6 +97,16 @@ def category(category_uuid):
                            buttons_in_category=buttons_in_category)
 
 
+def get_categories_buttons():
+    try:
+        settings_data = load_settings()  # Assuming this function loads your settings
+        # Get all buttons that are categories
+        categories = [button for button in settings_data['buttons'] if button.get('isCategory')]
+        return jsonify(categories), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
 def add_button():
     try:
         settings_data = load_settings()
@@ -107,6 +117,7 @@ def add_button():
             'id': new_uuid,
             'label': data['label'],
             'color': data['color'],
+            'fontColor': data['font_color'],
             'category': data.get('category'),
             'isCategory': data.get('isCategory', False)
         }
@@ -123,7 +134,11 @@ def add_button():
 
         settings_data['buttons'].append(new_button)
         save_settings(settings_data)
-        return jsonify({'success': True, 'message': 'Button added successfully'})
+        return jsonify({
+            'success': True,
+            'message': 'Button added successfully',
+            'id': new_uuid
+        })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 

@@ -20,7 +20,8 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
-    delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name
+    delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name, \
+    get_categories_buttons
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
@@ -200,6 +201,10 @@ def create_app():
     @app.route('/add_button', methods=['POST'])
     def add_button_route():
         return add_button()
+
+    @app.route('/api/category-buttons', methods=['GET'])
+    def get_buttons_route():
+        return get_categories_buttons()
 
     @app.route('/set_columns', methods=['POST'])
     def set_columns_route():
