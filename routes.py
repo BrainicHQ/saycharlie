@@ -26,7 +26,7 @@ from config import load_settings, save_settings
 import urllib.parse
 import os
 
-from svx_api import get_active_profile, get_profile_hosts
+from svx_api import get_active_profile
 
 UPLOAD_FOLDER = 'profile-uploads/'
 ALLOWED_EXTENSIONS = {'conf'}
@@ -75,13 +75,13 @@ def delete_file(filename):
 
 def dashboard():
     settings_data = load_settings()
-    active_profile, _, = get_active_profile()
+    active_profile, _ = get_active_profile()
     # get file name from the path
-    reflector_host = get_profile_hosts(active_profile)
+    profile_name = urllib.parse.unquote(os.path.basename(active_profile))
 
     return render_template('dashboard.html', buttons=settings_data['buttons'],
                            columns=settings_data['columns'], app_background=settings_data['app_background'],
-                           svx_active_profile=reflector_host)
+                           svx_active_profile=profile_name)
 
 
 def category(category_uuid):
