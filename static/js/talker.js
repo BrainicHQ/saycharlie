@@ -86,11 +86,5 @@ function displayTalkDuration(duration) {
 }
 
 function parseDateTime(dateTimeStr) {
-    const [date, time] = dateTimeStr.split(' ');
-    const [day, month, year] = date.split('.');
-    const [hours, minutes, seconds] = time.split(':');
-
-    // Create a new Date object with year, month (0-indexed), day, hours, minutes, seconds
-    return new Date(+year, month - 1, // Month is 0-indexed in JavaScript
-        +day, +hours, +minutes, +seconds);
+    return new Date(dateTimeStr);
 }
