@@ -22,7 +22,8 @@
                         🕒 <span class="hidden sm:inline ml-2 truncate">Talkers activity</span>
                     </a>
                 </div>
-                <span class="text-sm sm:text-lg font-semibold">{% block heading %}{% endblock %}</span>
+                <span id="profile-name"
+                      class="text-sm sm:text-lg font-semibold">{% block heading %}{% endblock %}</span>
                 <div class="flex space-x-2">
                     <a href="/settings"
                        class="flex items-center bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
@@ -48,5 +49,24 @@
                                                                         class="text-blue-500">Brainic.io</a></p>
     </div>
 </footer>
+<script>
+    document.getElementById('profile-name').addEventListener('click', function () {
+        toggleFullScreen();
+    });
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            // Try to enter fullscreen mode for the document; this can fail if fullscreen mode isn't supported
+            document.documentElement.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            // Exit fullscreen mode if currently in fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+</script>
 </body>
 </html>
