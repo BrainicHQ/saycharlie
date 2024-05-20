@@ -19,6 +19,7 @@
             integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
             crossorigin="anonymous"></script>
 {% endblock %}
+{% block heading %}🟢 {{ svx_active_profile }}{% endblock %}
 {% block content %}
     <div class="grid grid-cols-{{ columns }} gap-4">
         <div id="lastTalker" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Last Talker: Loading...</div>
@@ -114,7 +115,6 @@
         }
     </script>
     <script src="{{ url_for('static', filename='js/ham-api.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/meter.js') }}"></script>
     <script src="{{ url_for('static', filename='js/talker.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>

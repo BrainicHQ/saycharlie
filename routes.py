@@ -87,6 +87,9 @@ def dashboard():
 def category(category_uuid):
     settings_data = load_settings()
     category_data = settings_data['buttons']
+    active_profile, _ = get_active_profile()
+    # get file name from the path
+    profile_name = urllib.parse.unquote(os.path.basename(active_profile))
     buttons_in_category = []
     # if button label is equal to category name, return buttons in that category
     for button in category_data:
@@ -94,7 +97,9 @@ def category(category_uuid):
             buttons_in_category.append(button)
     return render_template('category.html', app_background=settings_data['app_background'],
                            columns=settings_data['columns'],
-                           buttons_in_category=buttons_in_category)
+                           buttons_in_category=buttons_in_category,
+                           svx_active_profile=profile_name
+                           )
 
 
 def get_categories_buttons():

@@ -30,6 +30,8 @@ from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
 from ham_radio_api import HamRadioAPI
+from datetime import datetime
+from dateutil import parser
 
 
 def get_local_ip():
@@ -140,12 +142,25 @@ def create_app():
     @app.route('/history')
     def last_talkers():
         talkers = log_monitor.get_last_talkers()
+
         for talker in talkers:
+            if 'stop_date_time' in talker and isinstance(talker['stop_date_time'], str):
+                try:
+                    # Use dateutil's parser to automatically detect and parse the date
+                    parsed_date = parser.parse(talker['stop_date_time'])
+                    formatted_date = parsed_date.strftime('%Y-%m-%d %H:%M:%S')
+                    talker['stop_date_time'] = formatted_date
+                except ValueError:
+                    print(f"Error parsing date {talker['stop_date_time']}")
+                    talker['stop_date_time'] = 'Invalid date format'  # Fallback value if parsing fails
+
             details = api.get_ham_details(talker['callsign'])
             talker['name'] = details.get('name', 'Not available')
-            # fill tg_name based on talkgroup number found in the settings
+
+            # Fill tg_name based on talkgroup number found in the settings
             talker['tg_name'] = get_group_name(talker['tg_number'])
-        return render_template('history.html', talkers=talkers, columns=last_talkers)
+
+        return render_template('history.html', talkers=talkers)
 
     @socketio.on('connect')
     def handle_connect():
