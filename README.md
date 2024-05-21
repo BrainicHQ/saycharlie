@@ -47,13 +47,7 @@ interactions and ensures efficient management of the SVXLink services.
 **Clone the Repository:**
 
 ```bash
-git clone https://github.com/BrainicHQ/saycharlie
-cd saycharlie
-```
-
-```bash
-pip install -r requirements.txt
-sh install.sh
+git clone https://github.com/BrainicHQ/saycharlie && cd saycharlie && chmod +x install.sh && ./install.sh
 ```
 
 ## Usage
