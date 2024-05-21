@@ -255,12 +255,11 @@ def create_app():
     thread.start()
 
     atexit.register(unregister_service)
-
+    register_service() # Register the service with Zeroconf
     return app, socketio, register_service
 
 
 app, socketio, register_service = create_app()
 
 if __name__ == '__main__':
-    register_service()  # Register the service with Zeroconf
     socketio.run(app, host='0.0.0.0', port=8337, debug=False)
