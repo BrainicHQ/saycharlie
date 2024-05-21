@@ -21,61 +21,88 @@
 #  Author: Silviu Stroe
 #
 
-# Define the application's directory with an absolute path
+# Directory of the script
 APP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Check for root privileges
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
 
 echo "Starting the installation of the saycharlie SVX Dashboard..."
 
-# Install Python 3, pip, and python3-venv if they are not already installed
-if ! command -v python3 &>/dev/null; then
-    echo "Python 3 is not installed. Installing Python 3..."
-    sudo apt-get update && sudo apt-get install python3 -y
-fi
+install_python_packages() {
+    # Install Python 3, pip, and python3-venv if they are not already installed
+    if command -v apt-get &>/dev/null; then
+        apt-get update
+        apt-get install -y python3 python3-pip python3-venv python3-dev || { echo "apt-get command failed"; exit 1; }
+    elif command -v dnf &>/dev/null; then
+        dnf install -y python3 python3-pip python3-venv python3-devel || { echo "dnf command failed"; exit 1; }
+    elif command -v pacman &>/dev/null; then
+        pacman -Sy --noconfirm python python-pip python-virtualenv base-devel || { echo "pacman command failed"; exit 1; }
+    elif command -v yum &>/dev/null; then
+        yum install -y python3 python3-pip python3-venv python3-devel || { echo "yum command failed"; exit 1; }
+    elif command -v zypper &>/dev/null; then
+        zypper install -y python3 python3-pip python3-venv python3-devel || { echo "zypper command failed"; exit 1; }
+    else
+        echo "Unsupported package manager. Please install Python packages manually."
+        exit 1
+    fi
 
-if ! command -v pip3 &>/dev/null; then
-    echo "pip3 is not installed. Installing pip3..."
-    sudo apt-get install python3-pip -y
-fi
+    # Update pip to the latest version
+    echo "Updating pip to the latest version..."
+    python3 -m pip install --upgrade pip || { echo "Failed to upgrade pip"; exit 1; }
+}
 
-if ! dpkg -s python3-venv &>/dev/null; then
-    echo "python3-venv is not installed. Installing python3-venv..."
-    sudo apt-get install python3-venv -y
-fi
+create_virtual_environment() {
+    echo "Creating a virtual environment..."
+    python3 -m venv "$APP_DIR/venv" || { echo "Failed to create virtual environment"; exit 1; }
+    echo "Virtual environment created."
+}
 
-if ! dpkg -s python3-dev &>/dev/null; then
-    echo "python3-dev is not installed. Installing python3-dev..."
-    sudo apt-get install python3-dev -y
-fi
+install_dependencies() {
+    if [ ! -f "$APP_DIR/requirements.txt" ]; then
+        echo "requirements.txt file does not exist in the same directory as the script."
+        exit 1
+    fi
 
-# Update pip to the latest version
-echo "Updating pip to the latest version..."
-sudo pip3 install --upgrade pip
+    source "$APP_DIR/venv/bin/activate" || { echo "Failed to activate virtual environment"; exit 1; }
+    echo "Installing dependencies from requirements.txt..."
+    pip install -r "$APP_DIR/requirements.txt" || { echo "Failed to install dependencies"; exit 1; }
+    echo "Dependencies installed."
+}
 
-# Create a virtual environment
-echo "Creating a virtual environment..."
-python3 -m venv "$APP_DIR/venv"
-echo "Virtual environment created."
+setup_systemd_service() {
+    # Determine the owner of the svxlink binary
+    SVXLINK_BINARY=$(which svxlink 2>/dev/null)
 
-# Activate the virtual environment
-source "$APP_DIR/venv/bin/activate"
+    if [ -z "$SVXLINK_BINARY" ]; then
+        echo "svxlink binary could not be found, defaulting to user 'svxlink'."
+        BIN_OWNER="svxlink"
+    else
+        BIN_OWNER=$(stat -c '%U' "$SVXLINK_BINARY")
+        if [ -z "$BIN_OWNER" ]; then
+            echo "Unable to determine the owner of $SVXLINK_BINARY, defaulting to user 'svxlink'."
+            BIN_OWNER="svxlink"
+        fi
+    fi
 
-# Install requirements
-echo "Installing dependencies from requirements.txt..."
-pip install -r "$APP_DIR/requirements.txt"
-echo "Dependencies installed."
+    if [ ! -f "$APP_DIR/app.py" ]; then
+        echo "app.py file does not exist in the same directory as the script."
+        exit 1
+    fi
 
-# Creating a systemd service file
-SERVICE_FILE=/etc/systemd/system/saycharlie.service
-echo "Creating a systemd service file at $SERVICE_FILE"
+    SERVICE_FILE=/etc/systemd/system/saycharlie.service
+    echo "Creating a systemd service file at $SERVICE_FILE"
 
-# Requires superuser access
-sudo tee $SERVICE_FILE > /dev/null << EOF
+    cat << EOF | tee $SERVICE_FILE > /dev/null
 [Unit]
 Description=saycharlie SVX Dashboard
 After=network.target
 
 [Service]
-User=svxlink
+User=$BIN_OWNER
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/venv/bin"
 Environment="FLASK_APP=app.py"
@@ -85,21 +112,34 @@ ExecStart=$APP_DIR/venv/bin/flask run --host=0.0.0.0 --port=8337
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd to recognize the new service
-sudo systemctl daemon-reload
+    systemctl daemon-reload
+    systemctl enable saycharlie.service
+    systemctl start saycharlie.service
+}
 
-# Enable the service to start on boot
-sudo systemctl enable saycharlie.service
+provide_feedback() {
+       LOCAL_IP=$(hostname -I | cut -d' ' -f1 || { echo "Failed to retrieve local IP address"; exit 1; })
 
-# Start the service
-sudo systemctl start saycharlie.service
+    if systemctl is-active --quiet saycharlie.service; then
+        echo "saycharlie service has been started and enabled at boot."
+        echo "Installation and service setup complete. saycharlie is now running as a service."
+        echo "You can check the status of the service with 'systemctl status saycharlie.service'"
+        echo "Access saycharlie Dashboard at:"
+        echo "http://saycharlie.local:8337"  # Only works if mDNS is configured
+        echo "http://localhost:8337"
+        echo "http://${LOCAL_IP}:8337"
+    else
+        echo "Failed to start saycharlie service. Please check the service status or journal logs for details."
+        echo "Run 'systemctl status saycharlie.service' or 'journalctl -xe' for more information."
+        exit 1
+    fi
 
-echo "saycharlie service has been started and enabled at boot."
+    echo "To stop the service, run 'systemctl stop saycharlie.service'"
+}
 
-LOCAL_IP=$(hostname -I | awk '{print $1}') # Get the local IP address
-
-# Provide final confirmation and instructions
-echo "Installation and service setup complete. saycharlie is now running as a service."
-echo "You can check the status of the service with 'sudo systemctl status saycharlie.service'"
-echo "Access saycharlie Dashboard at: http://saycharlie.local:8337 or http://localhost:8337 or http://$LOCAL_IP:8337"
-echo "To stop the service, run 'sudo systemctl stop saycharlie.service'"
+# Function Calls
+install_python_packages
+create_virtual_environment
+install_dependencies
+setup_systemd_service
+provide_feedback

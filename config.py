@@ -22,26 +22,34 @@ import json
 
 
 def load_settings():
-    initial_data = {'buttons': [],
-                    'columns': 2,
-                    'app_background': '#f0f0f0'}
+    config_path = 'config.json'
+    initial_data = {
+        'buttons': [],
+        'columns': 2,
+        'app_background': '#f0f0f0'
+    }
 
-    if os.path.exists('config.json'):
-        if os.path.getsize('config.json') > 0:
+    # Check if the config file exists
+    if os.path.exists(config_path):
+        # Check if the file is non-empty
+        if os.path.getsize(config_path) > 0:
             try:
-                with open('config.json', 'r') as f:
-                    return json.load(f)
+                with open(config_path, 'r') as file:
+                    data = json.load(file)
+                print("Config loaded successfully.")
+                return data
             except json.decoder.JSONDecodeError:
-                print("Error: Config file is empty or invalid JSON. Using default initial data.")
-                return initial_data
+                print("Error: Config file is invalid JSON. Using default settings.")
         else:
-            print("Error: Config file is empty. Using default initial data.")
-            return initial_data
+            print("Error: Config file is empty. Using default settings.")
     else:
-        with open('config.json', 'w') as f:
-            json.dump(initial_data, f, indent=4)
+        # Create a new config file with initial data if it doesn't exist
+        with open(config_path, 'w') as file:
+            json.dump(initial_data, file, indent=4)
         print("Config file created with initial data.")
-        return initial_data
+
+    # Return default settings if no valid config was loaded
+    return initial_data
 
 
 def save_settings(settings_data):
