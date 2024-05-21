@@ -67,7 +67,7 @@ install_dependencies() {
         exit 1
     fi
 
-    source "$APP_DIR/venv/bin/activate" || { echo "Failed to activate virtual environment"; exit 1; }
+    . "$APP_DIR/venv/bin/activate" || { echo "Failed to activate virtual environment"; exit 1; }
     echo "Installing dependencies from requirements.txt..."
     pip install -r "$APP_DIR/requirements.txt" || { echo "Failed to install dependencies"; exit 1; }
     echo "Dependencies installed."
