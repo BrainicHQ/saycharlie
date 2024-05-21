@@ -21,7 +21,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name, \
-    get_categories_buttons
+    get_categories_buttons, system_reboot, system_shutdown
 from threading import Thread
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
@@ -207,6 +207,14 @@ def create_app():
         if 'error' in details:
             return jsonify({"error": details['error']}), 400
         return jsonify({"name": details.get('name', 'Not available')}), 200
+
+    @app.route('/api/system_reboot', methods=['POST'])
+    def system_reboot_route():
+        return system_reboot()
+
+    @app.route('/api/system_shutdown', methods=['POST'])
+    def system_shutdown_route():
+        return system_shutdown()
 
     # Define routes
     @app.route('/')

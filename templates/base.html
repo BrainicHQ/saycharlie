@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dashboard{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.js"
+            integrity="sha512-2B9/byNV1KKRm5nQ2RLViPFD6U4dUjDGwuW1GU+ImJh8YinPU9Zlq1GzdTMO+G2ROrB5o1qasJBy1ttYz0wCug=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.css"
+          integrity="sha512-b+T2i3P45i1LZM7I00Ci5QquB9szqaxu+uuk5TUSGjZQ4w4n+qujQiIuvTv2BxE7WCGQCifNMksyKILDiHzsOg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="flex flex-col min-h-screen  bg-[{{ app_background }}]">
@@ -49,9 +55,65 @@
     </div>
 </footer>
 <script>
-    // Listen for a double-click event on the entire document
-    document.addEventListener('dblclick', function () {
-        toggleFullScreen();
+    const systemOptionsModal = new tingle.modal({
+        closeMethods: ['overlay', 'button', 'escape'],
+        closeLabel: "Close"
+    });
+    // set content
+    systemOptionsModal.setContent(`
+  <div class="flex flex-col items-center space-y-4 p-4">
+    <h1 class="text-lg font-semibold">System Options</h1>
+    <!-- System Reboot Button -->
+    <button onclick="systemReboot()" class="bg-blue-500 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline active:scale-95 active:shadow-inner transition duration-300 ease-in-out">
+      🔄 System Reboot
+    </button>
+    <!-- System Turn Off Button -->
+    <button onclick="systemShutdown()" class="bg-red-500 hover:bg-red-700 active:bg-red-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline active:scale-95 active:shadow-inner transition duration-300 ease-in-out">
+      ⏻ System Turn Off
+    </button>
+   </div>
+`);
+
+    async function sendSystemCommand(apiEndpoint, successMessage, errorMessage) {
+        try {
+            const response = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            });
+
+            if (response.ok) {
+                console.log(successMessage);
+                alert(successMessage);
+            } else {
+                const errorData = await response.json();
+                console.error(errorMessage + ': ' + errorData.message);
+                alert(errorMessage + ': ' + errorData.message);
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert('Network error: ' + error.message);
+        }
+    }
+
+    function systemReboot() {
+        sendSystemCommand('/api/system_reboot', 'System rebooted successfully', 'Failed to reboot system');
+    }
+
+    function systemShutdown() {
+        sendSystemCommand('/api/system_shutdown', 'System turned off successfully', 'Failed to turn off system');
+    }
+
+    window.addEventListener('click', function (evt) {
+        if (evt.detail === 2) {
+            // Start another timer for double click to check for triple click
+            this.doubleClickTimer = setTimeout(function () {
+                toggleFullScreen();
+            }, 400); // Adjust timing as needed
+        } else if (evt.detail === 3) {
+            // Clear the double click timer
+            clearTimeout(this.doubleClickTimer);
+            systemOptionsModal.open();
+        }
     });
 
     function toggleFullScreen() {

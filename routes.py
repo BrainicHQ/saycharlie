@@ -16,7 +16,7 @@
 #  Created on 5/16/24, 8:44 PM
 #  #
 #  Author: Silviu Stroe
-
+import subprocess
 import uuid
 
 from flask import request, redirect, render_template, url_for, jsonify
@@ -252,3 +252,25 @@ def settings():
     return render_template('settings.html', columns=settings_data['columns'], buttons=settings_data['buttons'],
                            talk_groups=settings_data.get('talk_groups', []),
                            app_background=settings_data['app_background'])
+
+
+def system_reboot():
+    try:
+        result = subprocess.run(['sudo', 'reboot'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return jsonify({"success": True, "message": "System rebooting..."}), 200
+        else:
+            return jsonify({"success": False, "message": result.stderr}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+def system_shutdown():
+    try:
+        result = subprocess.run(['sudo', 'shutdown', 'now'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return jsonify({"success": True, "message": "System shutting down..."}), 200
+        else:
+            return jsonify({"success": False, "message": result.stderr}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500

@@ -201,11 +201,10 @@
                     // Optionally, parse the response to get a more detailed error message if available
                     const errorData = await response.json(); // Assuming the server sends a JSON response even on errors
                     alert(`Failed to stop SVXLink: ${errorData.message}`);
-                    return; // Exit the function early
                 }
 
-                const data = await response.json();
-                alert(data.message);
+                // const data = await response.json();
+                // alert(data.message);
             } catch (error) {
                 console.error('Error stopping SVXLink:', error);
                 alert('Failed to stop SVXLink. Please try again.');
@@ -223,11 +222,8 @@
                     // Optionally, parse the response to get a more detailed error message if available
                     const errorData = await response.json(); // Assuming the server sends a JSON response even on errors
                     alert(`Failed to start SVXLink: ${errorData.message}`);
-                    return; // Exit the function early
                 }
 
-                const data = await response.json();
-                alert(data.message);
             } catch (error) {
                 console.error('Error starting SVXLink:', error);
                 alert('Failed to start SVXLink. Please try again.');

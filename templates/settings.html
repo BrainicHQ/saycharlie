@@ -156,10 +156,14 @@
                     })
                         .then(response => response.json())
                         .then(data => {
-                            alert(data.message); // Display success or error message
+
                             if (data.success) {
                                 this.buttons.push({...this.newButton, id: data.id});  // Add the new button to the list
                                 this.resetForm(); // Clear the form after successful submission
+                            }
+
+                            if (!data.success) {
+                                alert(data.message); // Display error message
                             }
                         })
                         .catch(error => {
@@ -192,7 +196,11 @@
                 }
                 return response.json();
             }).then(data => {
-                alert(data.message); // Display success or error message
+
+                if (!data.success) {
+                    alert(data.message); // Display error message
+                }
+
             }).catch(error => {
                 console.error('Error saving columns:', error);
                 alert('Failed to save columns. Please try again.');
@@ -210,7 +218,9 @@
                 }
                 return response.json();
             }).then(data => {
-                alert(data.message); // Display success or error message
+                if (!data.success) {
+                    alert(data.message); // Display error message
+                }
             }).catch(error => {
                 console.error('Error updating background color:', error);
                 alert('Failed to update background color. Please try again.');
@@ -265,8 +275,9 @@
                             return response.json();
                         })
                         .then(data => {
-                            console.log('Success:', data);
-                            alert(data.message);
+                            if (!data.success) {
+                                alert(data.message); // Display error message
+                            }
                             if (group.isNew) {
                                 group.isNew = false;
                                 group.id = data.id; // Update the ID from the server response
