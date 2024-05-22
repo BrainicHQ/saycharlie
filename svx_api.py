@@ -146,7 +146,7 @@ def get_ptt_ctrl_pty_from_config(config_file):
                 return config.get(section, "PTY_PATH"), "PTT control PTY found."
     except configparser.Error as e:
         logging.error(f"Failed to parse configuration file: {e}")
-    return None, "PTT_CTRL_PTY not found in the configuration file."
+    return None, "PTY_PATH not found in the configuration file."
 
 
 def process_ptt_request():
