@@ -21,13 +21,12 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(response => {
+            }).then(async response => {
                 if (response.ok) {
                     console.log('DTMF ' + dtmf_code + ' sent successfully');
-                    // alert('DTMF ' + dtmf_code + ' sent successfully');
                 } else {
-                    console.error('Failed to send DTMF');
-                    alert('Failed to send DTMF: ' + response.message);
+                    const data = await response.json();
+                    alert('Failed to send DTMF: ' + data.message);
                 }
             });
         }
