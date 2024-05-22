@@ -93,7 +93,7 @@
                     console.log('PTT ' + ptt_code + ' sent successfully');
                 } else {
                     console.error('Failed to send PTT');
-                    alert('Failed to send PTT: ' + response.statusText);
+                    alert('Failed to send PTT: ' + response.message);
                 }
             });
         }
@@ -110,7 +110,7 @@
                     console.log('DTMF ' + dtmf_code + ' sent successfully');
                 } else {
                     console.error('Failed to send DTMF');
-                    alert('Failed to send DTMF: ' + response.statusText);
+                    alert('Failed to send DTMF: ' + response.message);
                 }
             });
         }

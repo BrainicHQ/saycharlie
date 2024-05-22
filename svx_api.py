@@ -330,11 +330,11 @@ def switch_svxlink_profile(profile_path):
         restart_svxlink_service()
 
         return True, f"Switched to profile via symlink: {profile_path}"
-    except OSError as e:
-        logging.error(f"Failed to switch to profile due to OS error: {e}")
-        return False, str(e)
     except FileNotFoundError as e:
         logging.error(f"Profile configuration file not found: {e}")
+        return False, str(e)
+    except OSError as e:
+        logging.error(f"Failed to switch to profile due to OS error: {e}")
         return False, str(e)
     except Exception as e:  # Catch-all for other unexpected issues
         logging.error(f"An unexpected error occurred: {e}")
