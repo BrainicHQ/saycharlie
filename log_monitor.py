@@ -23,6 +23,19 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dateutil import parser
+import locale
+
+
+def parse_date_with_locale(date_str):
+    try:
+        # Attempt to parse using the user's locale
+        current_locale = locale.getlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, '')
+        date_time = parser.parse(date_str, fuzzy=True)
+        locale.setlocale(locale.LC_TIME, current_locale)
+        return date_time
+    except ValueError:
+        return None
 
 
 class LogMonitor:
@@ -77,7 +90,7 @@ class LogMonitor:
 
     def parse_line(self, line):
         # Pattern to match any date and time sequence followed by the log structure
-        pattern = r'(\d+[\.-]\d+[\.-]\d+ \d{2}:\d{2}:\d{2}): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
+        pattern = r'(.+): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
         match = re.match(pattern, line)
         if match:
             date_time_str, action, tg_number, talker_callsign = match.groups()
@@ -86,8 +99,13 @@ class LogMonitor:
                                          dayfirst=True)  # Assume European day-first convention as default
                 formatted_date_time = date_time.isoformat()  # Format for both internal use and display
             except ValueError:
-                print("Date format could not be parsed:", date_time_str)
-                return  # Exit if the date cannot be parsed
+                # If normal parsing fails, try parsing with user's locale
+                date_time = parse_date_with_locale(date_time_str)
+                if date_time:
+                    formatted_date_time = date_time.isoformat()
+                else:
+                    print("Date format could not be parsed:", date_time_str)
+                    return  # Exit if the date cannot be parsed
 
             if action == "start":
                 # Handling start action
