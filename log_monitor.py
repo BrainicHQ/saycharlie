@@ -23,17 +23,36 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dateutil import parser
-import locale
+from datetime import datetime
+import pytz
 
 
-def parse_date_with_locale(date_str):
+def robust_parse_date(date_str):
+    tzinfos = {
+        "CET": pytz.timezone("Europe/Berlin"),  # Central European Time
+        "CEST": pytz.timezone("Europe/Berlin"),  # Central European Summer Time
+        "EST": pytz.timezone("America/New_York"),  # Eastern Standard Time
+        "EDT": pytz.timezone("America/New_York"),  # Eastern Daylight Time
+        "PST": pytz.timezone("America/Los_Angeles"),  # Pacific Standard Time
+        "PDT": pytz.timezone("America/Los_Angeles"),  # Pacific Daylight Time
+        "IST": pytz.timezone("Asia/Kolkata"),  # Indian Standard Time
+        "BST": pytz.timezone("Europe/London"),  # British Summer Time
+        "GMT": pytz.timezone("GMT")  # Greenwich Mean Time
+    }
+
+    date_formats = [
+        "%a %b %d %H:%M:%S %Y",  # 'Wed May  8 18:53:29 2024'
+        "%Y-%m-%d %H:%M:%S",  # '2024-05-16 21:24:18'
+        "%d.%m.%Y %H:%M:%S",  # '19.05.2024 10:59:11'
+        # Add more formats as observed
+    ]
+    for fmt in date_formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
     try:
-        # Attempt to parse using the user's locale
-        current_locale = locale.getlocale(locale.LC_TIME)
-        locale.setlocale(locale.LC_TIME, '')
-        date_time = parser.parse(date_str, fuzzy=True)
-        locale.setlocale(locale.LC_TIME, current_locale)
-        return date_time
+        return parser.parse(date_str, fuzzy=True, dayfirst=True, tzinfos=tzinfos)
     except ValueError:
         return None
 
@@ -89,23 +108,15 @@ class LogMonitor:
             print(f"Log file '{self.log_file}' not found.")
 
     def parse_line(self, line):
-        # Pattern to match any date and time sequence followed by the log structure
-        pattern = r'(.+): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
+        pattern = r'^(.+?): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
         match = re.match(pattern, line)
         if match:
             date_time_str, action, tg_number, talker_callsign = match.groups()
-            try:
-                date_time = parser.parse(date_time_str,
-                                         dayfirst=True)  # Assume European day-first convention as default
-                formatted_date_time = date_time.isoformat()  # Format for both internal use and display
-            except ValueError:
-                # If normal parsing fails, try parsing with user's locale
-                date_time = parse_date_with_locale(date_time_str)
-                if date_time:
-                    formatted_date_time = date_time.isoformat()
-                else:
-                    print("Date format could not be parsed:", date_time_str)
-                    return  # Exit if the date cannot be parsed
+            date_time = robust_parse_date(date_time_str)
+            if not date_time:
+                print("Date format could not be parsed:", date_time_str)
+                return  # Exit if the date cannot be parsed
+            formatted_date_time = date_time.isoformat()  # Format for both internal use and display
 
             if action == "start":
                 # Handling start action
@@ -120,9 +131,8 @@ class LogMonitor:
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
             elif action == "stop" and self.active_session:
                 # Handling stop action
-                talker_start_time = time.mktime(
-                    time.strptime(self.active_session['start_date_time'], '%Y-%m-%dT%H:%M:%S'))
-                talker_stop_time = time.mktime(time.strptime(formatted_date_time, '%Y-%m-%dT%H:%M:%S'))
+                talker_start_time = datetime.fromisoformat(self.active_session['start_date_time']).timestamp()
+                talker_stop_time = datetime.fromisoformat(formatted_date_time).timestamp()
                 duration = talker_stop_time - talker_start_time  # in seconds
                 self.active_session.update({
                     'stop_date_time': formatted_date_time,

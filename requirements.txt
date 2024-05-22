@@ -34,3 +34,4 @@ Werkzeug==3.0.2
 wsproto==1.2.0
 zeroconf==0.132.2
 zipp==3.18.1
+pytz~=2024.1
