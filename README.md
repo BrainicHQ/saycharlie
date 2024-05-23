@@ -47,7 +47,7 @@ interactions and ensures efficient management of the SVXLink services.
 **Clone the Repository:**
 
 ```bash
-git clone https://github.com/BrainicHQ/saycharlie && cd saycharlie && chmod +x install.sh && ./install.sh
+git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && chmod +x install.sh && sudo ./install.sh
 ```
 
 ## Usage
@@ -57,7 +57,8 @@ interacting with your SVXLink service.
 
 ## Contributing
 
-The project is open-source, created and maintained by **YO6SAY** - [Silviu Stroe](https://brainic.io/?utm=saycharliegit).
+The project is open-source, created and maintained by **YO6SAY
+** - [Silviu Stroe](https://brainic.io/?utm=saycharliegit).
 We welcome contributions from the community, whether they are feature requests, bug fixes, or improvements to
 documentation. Please refer to CONTRIBUTING.md for more details on how to submit pull requests.
 
