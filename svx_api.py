@@ -25,6 +25,7 @@ import logging
 from flask import request
 import socket
 import ipaddress
+from os import access, R_OK
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -101,8 +102,12 @@ def find_config_file():
     ]
 
     for config_path in config_locations:
-        if config_path.exists():
-            return str(config_path), "Configuration file found at predefined location."
+        try:
+            if config_path.exists() and access(config_path, R_OK):
+                return str(config_path), "Configuration file found at predefined location."
+        except PermissionError as e:
+            logging.error(f"Permission denied while accessing {config_path}: {e}")
+            continue
 
     # If predefined locations check fails, use the shell command to parse process arguments
     try:
