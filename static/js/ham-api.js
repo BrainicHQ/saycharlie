@@ -29,3 +29,18 @@ async function fetchName(callsign) {
         throw error;  // Re-throw the error to handle it in the caller
     }
 }
+
+async function getGroupName(number) {
+    try {
+        const response = await fetch(`/api/get-group-name/${number}`);
+        if (response.status === 200) {
+            const data = await response.json();
+            return data.name;
+        } else if (response.status === 404) {
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching group name for number:', number, error);
+        throw error;
+    }
+}

@@ -208,6 +208,13 @@ def create_app():
             return jsonify({"error": details['error']}), 400
         return jsonify({"name": details.get('name', 'Not available')}), 200
 
+    @app.route('/api/get-group-name/<tg_number>', methods=['GET'])
+    def get_group_name_route(tg_number):
+        name = get_group_name(tg_number)
+        if name is None:
+            return jsonify({"error": "Talkgroup not found"}), 404
+        return jsonify({"name": name}), 200
+
     @app.route('/api/system_reboot', methods=['POST'])
     def system_reboot_route():
         return system_reboot()

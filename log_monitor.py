@@ -125,8 +125,6 @@ class LogMonitor:
                     'tg_number': tg_number,
                     'callsign': talker_callsign
                 }
-                self.talkers.insert(0, self.active_session)
-                self.talkers = self.talkers[:10]
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
             elif action == "stop" and self.active_session:
                 # Handling stop action
@@ -138,6 +136,8 @@ class LogMonitor:
                     'stopped': True,
                     'duration': duration
                 })
+                self.talkers.insert(0, self.active_session)
+                self.talkers = self.talkers[:10]
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
                 self.active_session = None
 

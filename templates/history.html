@@ -37,31 +37,37 @@
     </div>
     <script>
         const socket = io();
-        socket.on('update_last_talker', function (talker) {
-            if (!talker.stop_date_time) {
-                return;
+        let isInitialLoad = true;
+        socket.on('update_last_talker', async function (talker) {
+            if (talker.stopped !== true || isInitialLoad) {
+                isInitialLoad = false;
+                return; // Do not update the table if the talker is still active
             }
+
             const table = document.querySelector('tbody');
             const row = document.createElement('tr');
             const formattedDateTime = new Date(talker.stop_date_time).toLocaleString();  // Format datetime in JavaScript
+            const name = await fetchName(talker.callsign);
+            const displayName = name ? ` ${name}` : ' Name unavailable';
+            const tg_name = await getGroupName(talker.tg_number);
+            const displayTgName = tg_name ? ` ${tg_name}` : 'Unavailable';
+
             row.innerHTML = `
         <td class="py-4 px-6">${formattedDateTime}</td>
         <td class="py-4 px-6">${talker.callsign}</td>
-        <td class="py-4 px-6">${talker.name}</td>
+        <td class="py-4 px-6">${displayName}</td>
         <td class="py-4 px-6">${talker.tg_number}</td>
-        <td class="py-4 px-6">${talker.tg_name}</td>
+        <td class="py-4 px-6">${displayTgName}</td>
     `;
 
             // Add the new row to the top of the table if it is not the same as the first row
             if (table.rows.length > 0) {
-                const firstRow = table.rows[0];
-                if (firstRow.cells[1].textContent !== talker.callsign) {
-                    table.insertBefore(row, firstRow);
-                }
+                table.insertBefore(row, table.rows[0]);
             } else {
                 // Add the new row to the table if it is empty
                 table.appendChild(row);
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/ham-api.js') }}"></script>
 {% endblock %}
