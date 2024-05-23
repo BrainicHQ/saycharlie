@@ -44,10 +44,16 @@ interactions and ensures efficient management of the SVXLink services.
 
 ### Installation
 
-**Clone the Repository:**
+To install saycharlie, run the following command:
 
 ```bash
 git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && chmod +x install.sh && sudo ./install.sh
+```
+### Updating
+To update saycharlie, run the following command:
+
+```bash
+cd saycharlie && git pull && sudo systemctl restart saycharlie
 ```
 
 ## Usage
