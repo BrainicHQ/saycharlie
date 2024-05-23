@@ -125,8 +125,8 @@ class LogMonitor:
                     'tg_number': tg_number,
                     'callsign': talker_callsign
                 }
-                if len(self.talkers) >= 10:
-                    self.talkers.pop(0)
+                self.talkers.insert(0, self.active_session)
+                self.talkers = self.talkers[:10]
                 self.talkers.insert(0, self.active_session)
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
             elif action == "stop" and self.active_session:
