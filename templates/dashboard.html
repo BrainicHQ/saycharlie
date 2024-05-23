@@ -74,11 +74,11 @@
     <script>
         function togglePTT(button) {
             if (button.innerText === 'Switch PTT ON') {
-                button.innerText = '🗣️ Switch PTT OFF';
-                sendPTT('Z');
+                button.innerText = '🗣️ Switch PTT OFF'; // PTT is now ON (active transmission)
+                sendPTT('O'); // Open squelch for transmission
             } else {
-                button.innerText = 'Switch PTT ON';
-                sendPTT('O');
+                button.innerText = 'Switch PTT ON'; // PTT is now OFF (stop transmission)
+                sendPTT('Z'); // Close squelch to receive
             }
         }
 
