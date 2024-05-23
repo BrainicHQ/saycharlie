@@ -49,16 +49,18 @@ install_python_packages() {
         echo "Unsupported package manager. Please install Python packages manually."
         exit 1
     fi
-
-    # Update pip to the latest version
-    echo "Updating pip to the latest version..."
-    python3 -m pip install --upgrade pip || { echo "Failed to upgrade pip"; exit 1; }
 }
 
 create_virtual_environment() {
     echo "Creating a virtual environment..."
     python3 -m venv "$APP_DIR/venv" || { echo "Failed to create virtual environment"; exit 1; }
     echo "Virtual environment created."
+
+    . "$APP_DIR/venv/bin/activate" || { echo "Failed to activate virtual environment"; exit 1; }
+
+    # Update pip to the latest version
+    echo "Updating pip to the latest version..."
+    python3 -m pip install --upgrade pip || { echo "Failed to upgrade pip"; exit 1; }
 }
 
 install_dependencies() {
@@ -67,7 +69,6 @@ install_dependencies() {
         exit 1
     fi
 
-    . "$APP_DIR/venv/bin/activate" || { echo "Failed to activate virtual environment"; exit 1; }
     echo "Installing dependencies from requirements.txt..."
     pip install -r "$APP_DIR/requirements.txt" || { echo "Failed to install dependencies"; exit 1; }
     echo "Dependencies installed."
@@ -128,6 +129,16 @@ provide_feedback() {
         echo "http://saycharlie.local:8337"  # Only works if mDNS is configured
         echo "http://localhost:8337"
         echo "http://${LOCAL_IP}:8337"
+        # try to open the browser to the dashboard universally on all systems
+        echo "Attempting to open the saycharlie Dashboard in your default browser..."
+        if command -v xdg-open &>/dev/null; then
+            xdg-open "http://localhost:8337" || { echo "Failed to open the browser"; }
+        elif command -v open &>/dev/null; then
+            open "http://localhost:8337" || { echo "Failed to open the browser"; }
+        elif command -v start &>/dev/null; then
+            start "http://localhost:8337" || { echo "Failed to open the browser"; }
+        fi
+
     else
         echo "Failed to start saycharlie service. Please check the service status or journal logs for details."
         echo "Run 'systemctl status saycharlie.service' or 'journalctl -xe' for more information."
