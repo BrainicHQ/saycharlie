@@ -15,6 +15,20 @@
 {% endblock %}
 {% block heading %}📁 {{ svx_active_profile }}{% endblock %}
 {% block content %}
+     <div class="grid grid-cols-1 gap-4 mb-4">
+        <div id="volumeMeter" class="relative w-full h-6 bg-gray-300 rounded overflow-hidden">
+            <div class="absolute w-full h-full flex justify-between px-1 text-xs">
+                <span>-30</span>
+                <span>-25</span>
+                <span>-20</span>
+                <span>-15</span>
+                <span>-10</span>
+                <span>-5</span>
+                <span>0</span>
+            </div>
+            <div id="volumeLevel" class="h-full bg-orange-500 rounded" style="width: 25.65%;"></div>
+        </div>
+    </div>
     <div class="grid grid-cols-{{ columns }} gap-4">
         <div id="lastTalker" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Last Talker: Loading...</div>
         <div id="talkerTimer" class="bg-gray-100 border border-gray-300 p-3 rounded-md">Talk Duration: 0 min 0 sec</div>
@@ -120,4 +134,30 @@
     <script src="{{ url_for('static', filename='js/talker.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
+    <script>
+        socket.on('audio_level', function (data) {
+            const level = data.level; // Level now comes as dB from -30 to 0
+
+            // Using an exponential scale for converting dB to a more responsive percentage
+            const scaledLevel = Math.pow(10, (level / 20)); // Convert dB to linear scale
+            const minScaled = Math.pow(10, (-30 / 20)); // Minimum expected value at -30 dB
+            const maxScaled = Math.pow(10, (0 / 20)); // Maximum expected value at 0 dB
+
+            let percentage = ((scaledLevel - minScaled) / (maxScaled - minScaled)) * 100;
+            percentage = Math.min(Math.max(percentage, 0), 100); // Clamp the value between 0% and 100%
+
+            const volumeLevel = document.getElementById('volumeLevel');
+            volumeLevel.style.width = `${percentage.toFixed(2)}%`; // Use toFixed(2) to limit the decimal places
+
+            // Adjusted thresholds for changing color to fit -30 to 0 dB range
+            if (level < -20) {
+                volumeLevel.className = 'h-full bg-green-500 rounded'; // Green for low levels
+            } else if (level < -10) {
+                volumeLevel.className = 'h-full bg-orange-500 rounded'; // Orange for medium levels
+            } else {
+                volumeLevel.className = 'h-full bg-red-500 rounded'; // Red for high levels
+            }
+        });
+
+    </script>
 {% endblock %}

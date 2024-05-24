@@ -16,13 +16,14 @@
 #  Created on 5/16/24, 8:44 PM
 #  #
 #  Author: Silviu Stroe
+import math
 
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name, \
     get_categories_buttons, system_reboot, system_shutdown
-from threading import Thread
+from threading import Thread, Event
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
     switch_svxlink_profile, restore_original_svxlink_config, get_log_file_path, process_ptt_request
@@ -30,7 +31,8 @@ from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
 from ham_radio_api import HamRadioAPI
-from datetime import datetime
+import pyaudio
+import numpy as np
 from dateutil import parser
 
 
@@ -75,6 +77,49 @@ def create_app():
         properties={},
         server="saycharlie.local."
     )
+
+    def start_audio_monitor(stop_event):
+        CHUNK = 1024
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        RATE = 44100
+        REFERENCE_PEAK = 300  # Adjusted reference peak for dB calculation
+
+        p = pyaudio.PyAudio()
+        stream = p.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        frames_per_buffer=CHUNK)
+
+        print("Starting to monitor audio levels...")
+
+        try:
+            while not stop_event.is_set():
+                data = stream.read(CHUNK, exception_on_overflow=False)
+                ndarray = np.frombuffer(data, dtype=np.int16)
+                peak = np.abs(np.max(ndarray) - np.min(ndarray))
+
+                if peak > 0:
+                    db = 20 * math.log10(peak / REFERENCE_PEAK)  # Using a different reference level
+                    db = max(-30, db)  # Set a lower limit for dB display
+                    db = min(0, db)  # Make sure dB does not exceed 0
+                else:
+                    db = -30  # Minimum dB value if no signal is present
+
+                socketio.emit('audio_level', {'level': db}, namespace='/')
+                socketio.sleep(0.05)
+        finally:
+            print("Stopping audio monitor...")
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+
+    # Setup for audio monitoring
+    stop_audio_monitor = Event()  # This will allow us to stop the thread gracefully
+    audio_thread = Thread(target=start_audio_monitor, args=(stop_audio_monitor,))
+    audio_thread.daemon = True
+    audio_thread.start()
 
     # Register the service with Zeroconf
     def register_service():
@@ -262,7 +307,12 @@ def create_app():
     thread.start()
 
     atexit.register(unregister_service)
-    register_service() # Register the service with Zeroconf
+    register_service()  # Register the service with Zeroconf
+
+    # Clean up on exit
+    atexit.register(lambda: stop_audio_monitor.set())  # Ensure the audio thread is stopped
+    atexit.register(lambda: audio_thread.join())  # Optionally wait for the audio thread to finish
+
     return app, socketio, register_service
 
 
