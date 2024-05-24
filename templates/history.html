@@ -46,7 +46,8 @@
 
             const table = document.querySelector('tbody');
             const row = document.createElement('tr');
-            const formattedDateTime = new Date(talker.stop_date_time).toLocaleString();  // Format datetime in JavaScript
+            row.className = "bg-white border-b dark:bg-gray-800 dark:border-gray-700";
+            const formattedDateTime = new Date(talker.stop_date_time).toLocaleString();
             const name = await fetchName(talker.callsign);
             const displayName = name ? ` ${name}` : ' Name unavailable';
             const tg_name = await getGroupName(talker.tg_number);
