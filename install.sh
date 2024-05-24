@@ -76,17 +76,13 @@ install_dependencies() {
 
 setup_systemd_service() {
     # Determine the owner of the svxlink binary
-    SVXLINK_BINARY=$(which svxlink 2>/dev/null)
+    SVXLINK_PROCESS_USER=$(ps aux | grep '[s]vxlink' | awk '{print $1}')
 
-    if [ -z "$SVXLINK_BINARY" ]; then
-        echo "svxlink binary could not be found, defaulting to user 'svxlink'."
-        BIN_OWNER="svxlink"
+    if [ -z "$SVXLINK_PROCESS_USER" ]; then
+        echo "No active svxlink process found, defaulting to user 'svxlink'."
+        SVXLINK_PROCESS_USER="svxlink"
     else
-        BIN_OWNER=$(stat -c '%U' "$SVXLINK_BINARY")
-        if [ -z "$BIN_OWNER" ]; then
-            echo "Unable to determine the owner of $SVXLINK_BINARY, defaulting to user 'svxlink'."
-            BIN_OWNER="svxlink"
-        fi
+        echo "svxlink is running under user: $SVXLINK_PROCESS_USER"
     fi
 
     if [ ! -f "$APP_DIR/app.py" ]; then
@@ -103,7 +99,7 @@ Description=saycharlie SVX Dashboard
 After=network.target
 
 [Service]
-User=$BIN_OWNER
+User=$SVXLINK_PROCESS_USER
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/venv/bin"
 Environment="FLASK_APP=app.py"
