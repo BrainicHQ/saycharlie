@@ -18,125 +18,134 @@
  * #
  * # Author: Silviu Stroe
  */
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function () {
     const weatherDisplay = document.getElementById('weather-emoji');
 
-    try {
-        const ipResponse = await fetch('https://ipv4-check-perf.radar.cloudflare.com/api/info');
-        if (!ipResponse.ok) throw new Error('Failed to fetch IP location');
-        const locationData = await ipResponse.json();
-        const city = locationData.city;
+    async function updateWeather() {
 
-        if (!city) throw new Error('City information is unavailable');
-        const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
-        const geoResponse = await fetch(geocodingUrl);
-        if (!geoResponse.ok) throw new Error('Failed to fetch geocoding data');
-        const geoData = await geoResponse.json();
+        try {
+            const ipResponse = await fetch('https://ipv4-check-perf.radar.cloudflare.com/api/info');
+            if (!ipResponse.ok) throw new Error('Failed to fetch IP location');
+            const locationData = await ipResponse.json();
+            const city = locationData.city;
 
-        if (geoData.results.length === 0) throw new Error('Geocoding results are empty');
-        const lat = geoData.results[0].latitude;
-        const lon = geoData.results[0].longitude;
+            if (!city) throw new Error('City information is unavailable');
+            const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+            const geoResponse = await fetch(geocodingUrl);
+            if (!geoResponse.ok) throw new Error('Failed to fetch geocoding data');
+            const geoData = await geoResponse.json();
 
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?current_weather=true&latitude=${lat}&longitude=${lon}`;
-        const weatherResponse = await fetch(weatherUrl);
-        if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
-        const weatherData = await weatherResponse.json();
+            if (geoData.results.length === 0) throw new Error('Geocoding results are empty');
+            const lat = geoData.results[0].latitude;
+            const lon = geoData.results[0].longitude;
 
-        const weather = weatherData.current_weather.weathercode;
-        const temperature = weatherData.current_weather.temperature;
-        let emoji;
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?current_weather=true&latitude=${lat}&longitude=${lon}`;
+            const weatherResponse = await fetch(weatherUrl);
+            if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
+            const weatherData = await weatherResponse.json();
 
-        switch (weather) {
-            case 0:
-                emoji = '☀️';
-                break; // Clear sky
-            case 1:
-                emoji = '🌤️';
-                break; // Mainly clear
-            case 2:
-                emoji = '⛅';
-                break; // Partly cloudy
-            case 3:
-                emoji = '☁️';
-                break; // Overcast
-            case 45:
-                emoji = '🌫️';
-                break; // Fog and depositing rime fog
-            case 48:
-                emoji = '🌫️';
-                break; // Fog and depositing rime fog
-            case 51:
-                emoji = '🌧️';
-                break; // Drizzle: Light intensity
-            case 53:
-                emoji = '🌧️';
-                break; // Drizzle: Moderate intensity
-            case 55:
-                emoji = '🌧️';
-                break; // Drizzle: Dense intensity
-            case 56:
-                emoji = '🧊🌧️';
-                break; // Freezing Drizzle: Light intensity
-            case 57:
-                emoji = '🧊🌧️';
-                break; // Freezing Drizzle: Dense intensity
-            case 61:
-                emoji = '🌧️';
-                break; // Rain: Slight intensity
-            case 63:
-                emoji = '🌧️';
-                break; // Rain: Moderate intensity
-            case 65:
-                emoji = '🌧️';
-                break; // Rain: Heavy intensity
-            case 66:
-                emoji = '🧊🌧️';
-                break; // Freezing Rain: Light intensity
-            case 67:
-                emoji = '🧊🌧️';
-                break; // Freezing Rain: Heavy intensity
-            case 71:
-                emoji = '❄️';
-                break; // Snow fall: Slight intensity
-            case 73:
-                emoji = '❄️';
-                break; // Snow fall: Moderate intensity
-            case 75:
-                emoji = '❄️';
-                break; // Snow fall: Heavy intensity
-            case 77:
-                emoji = '🌨️';
-                break; // Snow grains
-            case 80:
-                emoji = '🌦️';
-                break; // Rain showers: Slight intensity
-            case 81:
-                emoji = '🌦️';
-                break; // Rain showers: Moderate intensity
-            case 82:
-                emoji = '🌦️';
-                break; // Rain showers: Violent intensity
-            case 85:
-                emoji = '🌨️';
-                break; // Snow showers: Slight intensity
-            case 86:
-                emoji = '🌨️';
-                break; // Snow showers: Heavy intensity
-            case 95:
-                emoji = '🌩️';
-                break; // Thunderstorm: Slight or moderate
-            case 96:
-                emoji = '🌩️🧊';
-                break; // Thunderstorm with slight hail
-            case 99:
-                emoji = '🌩️🧊';
-                break; // Thunderstorm with heavy hail
-            default:
-                emoji = ''; // Unknown weather
+            const weather = weatherData.current_weather.weathercode;
+            const temperature = weatherData.current_weather.temperature;
+            let emoji;
+
+            switch (weather) {
+                case 0:
+                    emoji = '☀️';
+                    break; // Clear sky
+                case 1:
+                    emoji = '🌤️';
+                    break; // Mainly clear
+                case 2:
+                    emoji = '⛅';
+                    break; // Partly cloudy
+                case 3:
+                    emoji = '☁️';
+                    break; // Overcast
+                case 45:
+                    emoji = '🌫️';
+                    break; // Fog and depositing rime fog
+                case 48:
+                    emoji = '🌫️';
+                    break; // Fog and depositing rime fog
+                case 51:
+                    emoji = '🌧️';
+                    break; // Drizzle: Light intensity
+                case 53:
+                    emoji = '🌧️';
+                    break; // Drizzle: Moderate intensity
+                case 55:
+                    emoji = '🌧️';
+                    break; // Drizzle: Dense intensity
+                case 56:
+                    emoji = '🧊🌧️';
+                    break; // Freezing Drizzle: Light intensity
+                case 57:
+                    emoji = '🧊🌧️';
+                    break; // Freezing Drizzle: Dense intensity
+                case 61:
+                    emoji = '🌧️';
+                    break; // Rain: Slight intensity
+                case 63:
+                    emoji = '🌧️';
+                    break; // Rain: Moderate intensity
+                case 65:
+                    emoji = '🌧️';
+                    break; // Rain: Heavy intensity
+                case 66:
+                    emoji = '🧊🌧️';
+                    break; // Freezing Rain: Light intensity
+                case 67:
+                    emoji = '🧊🌧️';
+                    break; // Freezing Rain: Heavy intensity
+                case 71:
+                    emoji = '❄️';
+                    break; // Snow fall: Slight intensity
+                case 73:
+                    emoji = '❄️';
+                    break; // Snow fall: Moderate intensity
+                case 75:
+                    emoji = '❄️';
+                    break; // Snow fall: Heavy intensity
+                case 77:
+                    emoji = '🌨️';
+                    break; // Snow grains
+                case 80:
+                    emoji = '🌦️';
+                    break; // Rain showers: Slight intensity
+                case 81:
+                    emoji = '🌦️';
+                    break; // Rain showers: Moderate intensity
+                case 82:
+                    emoji = '🌦️';
+                    break; // Rain showers: Violent intensity
+                case 85:
+                    emoji = '🌨️';
+                    break; // Snow showers: Slight intensity
+                case 86:
+                    emoji = '🌨️';
+                    break; // Snow showers: Heavy intensity
+                case 95:
+                    emoji = '🌩️';
+                    break; // Thunderstorm: Slight or moderate
+                case 96:
+                    emoji = '🌩️🧊';
+                    break; // Thunderstorm with slight hail
+                case 99:
+                    emoji = '🌩️🧊';
+                    break; // Thunderstorm with heavy hail
+                default:
+                    emoji = ''; // Unknown weather
+            }
+            weatherDisplay.textContent = `${emoji} ${temperature}°C`;
+        } catch (error) {
+            console.error('Error:', error);
+            weatherDisplay.textContent = ''; // Display error message in UI
         }
-        weatherDisplay.textContent = `${emoji} ${temperature}°C`;
-    } catch (error) {
-        console.error('Error:', error);
-        weatherDisplay.textContent = ''; // Display error message in UI
     }
+
+    // Call updateWeather immediately when the page loads
+    updateWeather();
+
+    // Set the interval to update weather every 5 minutes
+    setInterval(updateWeather, 300000); // 300000 milliseconds = 5 minutes
 });
