@@ -75,7 +75,7 @@ install_dependencies() {
 }
 
 setup_systemd_service() {
-    # Determine the owner of the svxlink binary
+    # Determine the owner of the svxlink process
     SVXLINK_PROCESS_USER=$(ps aux | grep '[s]vxlink' | awk '{print $1}')
 
     if [ -z "$SVXLINK_PROCESS_USER" ]; then
