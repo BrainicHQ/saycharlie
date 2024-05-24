@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    <link rel="manifest" href="/static/icons/site.webmanifest">
+    <link rel="mask-icon" href="/static/icons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="/static/icons/favicon.ico">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="/static/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
     <title>{% block title %}Dashboard{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.js"
@@ -25,22 +34,28 @@
                     </a>
                     <a href="/history"
                        class="flex items-center bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
-                        🕒 <span class="hidden md:inline ml-2 truncate">Talkers activity</span>
+                        🕒 <span class="hidden md:inline ml-2 truncate">Talkers</span>
                     </a>
                 </div>
                 <span class="text-sm sm:text-lg font-semibold">{% block heading %}{% endblock %}</span>
-                <div class="flex space-x-2">
+                <div class="flex items-center space-x-2">
+                    <!-- Weather Emoji and Temperature Display -->
+                    <span id="weather-emoji"
+                          class="text-sm xl:text-lg font-semibold flex items-center bg-gray-300 text-black py-2 px-4 rounded-full">
+                🌡️ --°C
+            </span>
                     <a href="/settings"
                        class="flex items-center bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
                         🔧 <span class="hidden md:inline ml-2">Settings</span>
                     </a>
                     <a href="/files"
-                       class="flex items-center bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                       class="flex items-center bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
                         📡 <span class="hidden md:inline ml-2">SVX</span>
                     </a>
                 </div>
             </div>
         </nav>
+
 
         {% block content %}{% endblock %}
 
@@ -54,6 +69,7 @@
                                                                         class="text-blue-500">Brainic.io</a></p>
     </div>
 </footer>
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
 <script>
     const systemOptionsModal = new tingle.modal({
         closeMethods: ['overlay', 'button', 'escape'],
