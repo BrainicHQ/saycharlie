@@ -30,7 +30,6 @@ from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
 from ham_radio_api import HamRadioAPI
-from datetime import datetime
 from dateutil import parser
 
 
