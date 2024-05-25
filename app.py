@@ -83,36 +83,51 @@ def create_app():
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
         RATE = 44100
-        REFERENCE_PEAK = 300  # Adjusted reference peak for dB calculation
+        REFERENCE_PEAK = 300
+        p = pyaudio.PyAudio()  # Define the PyAudio instance
 
         def callback(in_data, frame_count, time_info, status):
-            ndarray = np.frombuffer(in_data, dtype=np.int16)
-            peak = np.abs(np.max(ndarray) - np.min(ndarray))
-
-            if peak > 0:
-                db = 20 * math.log10(peak / REFERENCE_PEAK)
-                db = max(-30, db)  # Set a lower limit for dB display
-                db = min(0, db)  # Make sure dB does not exceed 0
-            else:
-                db = -30  # Minimum dB value if no signal is present
-
-            socketio.emit('audio_level', {'level': db}, namespace='/')
+            try:
+                ndarray = np.frombuffer(in_data, dtype=np.int16)
+                peak = np.abs(np.max(ndarray) - np.min(ndarray))
+                if peak > 0:
+                    db = 20 * math.log10(peak / REFERENCE_PEAK)
+                    db = max(-30, db)
+                    db = min(0, db)
+                else:
+                    db = -30
+                socketio.emit('audio_level', {'level': db}, namespace='/')
+            except Exception as e:
+                print(f"Error processing audio data: {e}")
             return (None, pyaudio.paContinue)
 
-        p = pyaudio.PyAudio()
-        stream = p.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        frames_per_buffer=CHUNK,
-                        stream_callback=callback)
+        # Specify the device index manually if needed
+        device_index = None
+        for i in range(p.get_device_count()):
+            dev_info = p.get_device_info_by_index(i)
+            if dev_info.get('name') == 'plugasym' and dev_info.get(
+                    'hostApi') == 0:  # Host API 0 is usually ALSA on Linux
+                device_index = i
+                break
 
-        print("Starting to monitor audio levels...")
-        stream.start_stream()
+        if device_index is None:
+            print("Suitable device not found. Please check your ALSA configuration.")
+            return
 
         try:
+            stream = p.open(format=FORMAT,
+                            channels=CHANNELS,
+                            rate=RATE,
+                            input=True,
+                            frames_per_buffer=CHUNK,
+                            input_device_index=device_index,
+                            stream_callback=callback)
+
+            print("Starting to monitor audio levels...")
+            stream.start_stream()
+
             while not stop_event.is_set():
-                socketio.sleep(0.1)  # Adjust sleep time as needed
+                socketio.sleep(0.1)  # Keep the main thread active
         finally:
             print("Stopping audio monitor...")
             stream.stop_stream()
