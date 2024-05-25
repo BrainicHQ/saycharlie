@@ -31,7 +31,7 @@ from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
 from ham_radio_api import HamRadioAPI
-import pyaudio
+import sounddevice as sd
 import numpy as np
 from dateutil import parser
 
@@ -80,40 +80,38 @@ def create_app():
 
     def start_audio_monitor(stop_event):
         CHUNK = 1024
-        FORMAT = pyaudio.paInt16
         CHANNELS = 1
         RATE = 44100
         REFERENCE_PEAK = 300  # Adjusted reference peak for dB calculation
 
-        p = pyaudio.PyAudio()
-        stream = p.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        frames_per_buffer=CHUNK)
+        def audio_callback(indata, frames, time, status):
+            ndarray = indata[:, 0]  # Accessing the mono channel data
+            peak = np.abs(np.max(ndarray) - np.min(ndarray))
+
+            if peak > 0:
+                db = 20 * math.log10(peak / REFERENCE_PEAK)
+                db = max(-30, db)  # Set a lower limit for dB display
+                db = min(0, db)  # Cap at 0 dB
+            else:
+                db = -30  # Minimum dB value if no signal is present
+
+            socketio.emit('audio_level', {'level': db}, namespace='/')
+
+        # Open the audio stream using sounddevice
+        stream = sd.InputStream(callback=audio_callback,
+                                channels=CHANNELS,
+                                samplerate=RATE,
+                                blocksize=CHUNK,
+                                dtype='int16')
 
         print("Starting to monitor audio levels...")
 
         try:
-            while not stop_event.is_set():
-                data = stream.read(CHUNK, exception_on_overflow=False)
-                ndarray = np.frombuffer(data, dtype=np.int16)
-                peak = np.abs(np.max(ndarray) - np.min(ndarray))
-
-                if peak > 0:
-                    db = 20 * math.log10(peak / REFERENCE_PEAK)  # Using a different reference level
-                    db = max(-30, db)  # Set a lower limit for dB display
-                    db = min(0, db)  # Make sure dB does not exceed 0
-                else:
-                    db = -30  # Minimum dB value if no signal is present
-
-                socketio.emit('audio_level', {'level': db}, namespace='/')
-                socketio.sleep(0.05)
+            with stream:
+                while not stop_event.is_set():
+                    socketio.sleep(0.05)  # This replaces the blocking read
         finally:
             print("Stopping audio monitor...")
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
 
     # Setup for audio monitoring
     stop_audio_monitor = Event()  # This will allow us to stop the thread gracefully

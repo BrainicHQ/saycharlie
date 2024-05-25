@@ -1,10 +1,10 @@
 Flask==3.0.3
-Flask_SocketIO==5.3.6
+flask_socketio==5.3.6
 numpy==1.26.4
-PyAudio==0.2.14
 python_dateutil==2.9.0.post0
 pytz==2024.1
 Requests==2.32.2
-watchdog==4.0.0
+sounddevice==0.4.6
+watchdog==4.0.1
 Werkzeug==3.0.3
 zeroconf==0.132.2
