@@ -163,10 +163,13 @@ def create_app():
 
     @socketio.on('connect')
     def handle_connect():
-        # get last talker
-        current_talkers = log_monitor.get_last_talkers()
-        if current_talkers:
-            emit('update_last_talker', current_talkers[0])
+        # Send the last active talker to the client on connect
+        current_talker = log_monitor.get_active_talker()
+        past_talkers = log_monitor.get_last_talkers()
+        if current_talker:
+            emit('update_last_talker', current_talker)  # Send the active talker
+        elif past_talkers:
+            emit('update_last_talker', past_talkers[0])  # Send the most recent talker
 
     @app.route('/api/send_dtmf', methods=['POST'])
     def send_dtmf_route():
@@ -261,7 +264,7 @@ def create_app():
     thread.start()
 
     atexit.register(unregister_service)
-    register_service() # Register the service with Zeroconf
+    register_service()  # Register the service with Zeroconf
     return app, socketio, register_service
 
 
