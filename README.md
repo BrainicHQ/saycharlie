@@ -3,7 +3,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)  
 [![GitHub issues](https://img.shields.io/github/issues/BrainicHQ/saycharlie)](https://https://github.com/BrainicHQ/saycharlie/issues)
 ![GitHub stars](https://img.shields.io/github/stars/BrainicHQ/saycharlie)
-![GitHub license](https://img.shields.io/github/license/BrainicHQ/saycharlie)
 ![GitHub contributors](https://img.shields.io/github/contributors/BrainicHQ/saycharlie)
 ![GitHub last commit](https://img.shields.io/github/last-commit/BrainicHQ/saycharlie)
 ![GitHub code size](https://img.shields.io/github/languages/code-size/BrainicHQ/saycharlie)
