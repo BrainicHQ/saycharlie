@@ -154,6 +154,20 @@ def get_ptt_ctrl_pty_from_config(config_file):
     return None, "PTY_PATH not found in the configuration file."
 
 
+def get_callsign_from_config():
+    config_file, message = find_config_file()
+    if config_file:
+        config = configparser.ConfigParser(strict=False)
+        try:
+            config.read(config_file)
+            for section in config.sections():
+                if config.has_option(section, "CALLSIGN"):
+                    return config.get(section, "CALLSIGN")
+        except configparser.Error as e:
+            logging.error(f"Failed to parse configuration file: {e}")
+    return None
+
+
 def process_ptt_request():
     ptt_code = request.get_json().get("ptt_code")
     config_file, message = find_config_file()
