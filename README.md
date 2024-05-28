@@ -2,6 +2,12 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)  
 [![GitHub issues](https://img.shields.io/github/issues/BrainicHQ/saycharlie)](https://https://github.com/BrainicHQ/saycharlie/issues)
+![GitHub stars](https://img.shields.io/github/stars/BrainicHQ/saycharlie)
+![GitHub license](https://img.shields.io/github/license/BrainicHQ/saycharlie)
+![GitHub contributors](https://img.shields.io/github/contributors/BrainicHQ/saycharlie)
+![GitHub last commit](https://img.shields.io/github/last-commit/BrainicHQ/saycharlie)
+![GitHub code size](https://img.shields.io/github/languages/code-size/BrainicHQ/saycharlie)
+
 
 <p align="center">
   <img src="/saycharlie-dashboard.jpg" width="400">
@@ -47,7 +53,7 @@ interactions and ensures efficient management of the SVXLink services.
 To install saycharlie, run the following command:
 
 ```bash
-git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && chmod +x install.sh && sudo ./install.sh
+git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && sudo chmod +x install.sh && sudo ./install.sh
 ```
 ### Updating
 To update saycharlie, run the following command:
@@ -66,7 +72,7 @@ interacting with your SVXLink service.
 The project is open-source, created and maintained by **YO6SAY
 ** - [Silviu Stroe](https://brainic.io/?utm=saycharliegit).
 We welcome contributions from the community, whether they are feature requests, bug fixes, or improvements to
-documentation. Please refer to CONTRIBUTING.md for more details on how to submit pull requests.
+documentation.
 
 ## License
 
@@ -76,3 +82,7 @@ This project is licensed under the GNU General Public License v3.0 - see the LIC
 
 For support, feature requests, or any other inquiries, please open an issue in the GitHub issue tracker for this
 repository.
+
+## Acknowledgements
+We would like to express our gratitude to the following contributor for their support and contributions to the project:
+- [Michael Groß (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
