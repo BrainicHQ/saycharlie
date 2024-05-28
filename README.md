@@ -54,7 +54,9 @@ To install saycharlie, run the following command:
 ```bash
 git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && sudo chmod +x install.sh && sudo ./install.sh
 ```
+
 ### Updating
+
 To update saycharlie, run the following command:
 
 ```bash
@@ -68,8 +70,7 @@ interacting with your SVXLink service.
 
 ## Contributing
 
-The project is open-source, created and maintained by **YO6SAY
-** - [Silviu Stroe](https://brainic.io/?utm=saycharliegit).
+The project is open-source, created and maintained by [**Silviu Stroe YO6SAY**](https://brainic.io/?utm=saycharliegit).
 We welcome contributions from the community, whether they are feature requests, bug fixes, or improvements to
 documentation.
 
@@ -83,5 +84,7 @@ For support, feature requests, or any other inquiries, please open an issue in t
 repository.
 
 ## Acknowledgements
+
 We would like to express our gratitude to the following contributor for their support and contributions to the project:
+
 - [Michael Gross (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
