@@ -84,4 +84,4 @@ repository.
 
 ## Acknowledgements
 We would like to express our gratitude to the following contributor for their support and contributions to the project:
-- [Michael Groß (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
+- [Michael Gross (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
