@@ -105,6 +105,7 @@ def create_app():
         device_index = None
         for i in range(p.get_device_count()):
             dev_info = p.get_device_info_by_index(i)
+            print(dev_info)
             if dev_info.get('name') == 'plugasym' and dev_info.get(
                     'hostApi') == 0:  # Host API 0 is usually ALSA on Linux
                 device_index = i
