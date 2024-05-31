@@ -81,7 +81,7 @@ pcm.!default {
 EOL
 
 # Route the microphone input to the loopback device
-arecord -f cd -D "hw:${mic},0" | aplay -D hw:1,0 &
+arecord -f cd -D "hw:${mic},0" | aplay -D hw:1,0 >/dev/null 2>&1 </dev/null &
 
 # Disown the process so it doesn't get killed when the terminal is closed
 disown
