@@ -107,9 +107,8 @@ def create_app():
         device_index = None
         for i in range(p.get_device_count()):
             dev_info = p.get_device_info_by_index(i)
-            # If device contains Loopback and has one output channel, it's likely the Loopback device we want
-            if dev_info.get('name') is not None and 'Loopback' in dev_info.get('name') and dev_info.get(
-                    'maxOutputChannels') == 1:
+            # get the right loopback device
+            if 'Loopback' in dev_info.get('name'):
                 device_index = i
                 break
 
