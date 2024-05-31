@@ -15,7 +15,7 @@
 {% endblock %}
 {% block heading %}📁 {{ svx_active_profile }}{% endblock %}
 {% block content %}
-     <div class="grid grid-cols-1 gap-4 mb-4">
+    <div class="grid grid-cols-1 gap-4 mb-4">
         <div id="volumeMeter" class="relative w-full h-6 bg-gray-300 rounded overflow-hidden">
             <div class="absolute w-full h-full flex justify-between px-1 text-xs">
                 <span>-30</span>
@@ -25,8 +25,21 @@
                 <span>-10</span>
                 <span>-5</span>
                 <span>0</span>
+                <span>3</span>
             </div>
-            <div id="volumeLevel" class="h-full bg-orange-500 rounded" style="width: 25.65%;"></div>
+            <div class="absolute w-full h-full flex justify-between px-1">
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r border-black"></div>
+                <div class="h-full border-r-2 border-red-500"></div>
+            </div>
+            <div id="peakLevel"
+                 class="absolute bg-yellow-700 opacity-80 h-full w-3 left-0 transition-all duration-100 ease-out"></div>
+            <div id="volumeLevel" class="h-full rounded transition-all duration-100 ease-out bg-transparent"></div>
         </div>
     </div>
     <div class="grid grid-cols-{{ columns }} gap-4">
@@ -115,29 +128,63 @@
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
     <script>
-        socket.on('audio_level', function (data) {
-            const level = data.level; // Level now comes as dB from -30 to 0
-
-            // Using an exponential scale for converting dB to a more responsive percentage
-            const scaledLevel = Math.pow(10, (level / 20)); // Convert dB to linear scale
-            const minScaled = Math.pow(10, (-30 / 20)); // Minimum expected value at -30 dB
-            const maxScaled = Math.pow(10, (0 / 20)); // Maximum expected value at 0 dB
-
-            let percentage = ((scaledLevel - minScaled) / (maxScaled - minScaled)) * 100;
-            percentage = Math.min(Math.max(percentage, 0), 100); // Clamp the value between 0% and 100%
+        document.addEventListener('DOMContentLoaded', function () {
+            let peakLevel = -30; // Initialize peak level at the minimum dB level
+            let lastUpdate = Date.now(); // Track the last update time to manage decay properly
 
             const volumeLevel = document.getElementById('volumeLevel');
-            volumeLevel.style.width = `${percentage.toFixed(2)}%`; // Use toFixed(2) to limit the decimal places
+            const peakLevelBar = document.getElementById('peakLevel');
+            const minDb = -30;
+            const maxDb = 3;
 
-            // Adjusted thresholds for changing color to fit -30 to 0 dB range
-            if (level < -20) {
-                volumeLevel.className = 'h-full bg-green-500 rounded'; // Green for low levels
-            } else if (level < -10) {
-                volumeLevel.className = 'h-full bg-orange-500 rounded'; // Orange for medium levels
-            } else {
-                volumeLevel.className = 'h-full bg-red-500 rounded'; // Red for high levels
+            function updateLevels() {
+                const now = Date.now();
+
+                // Update peak level decay
+                if (now - lastUpdate > 100) {
+                    peakLevel -= 0.5; // Decay peak level by 1 dB every 100ms
+                    peakLevel = Math.max(peakLevel, minDb);
+                    lastUpdate = now;
+                }
+
+                // Calculate and set the peak level bar position
+                let peakPercentage = ((peakLevel - minDb) / (maxDb - minDb)) * 100;
+                peakPercentage = Math.max(0, Math.min(peakPercentage, 100));
+                peakLevelBar.style.left = `${peakPercentage.toFixed(2)}%`;
+
+                // Call this function again on the next animation frame
+                requestAnimationFrame(updateLevels);
             }
-        });
 
+            socket.on('audio_level', function (data) {
+                const level = parseFloat(data.level); // Parse dB level from backend and ensure it's a number
+
+                // Calculate and set the volume level bar width
+                let percentage = ((level - minDb) / (maxDb - minDb)) * 100;
+                percentage = Math.max(0, Math.min(percentage, 100)); // Ensure it stays within 0% and 100%
+                volumeLevel.style.width = `${percentage.toFixed(2)}%`;
+                volumeLevel.style.backgroundColor = getColorForLevel(level);
+
+                // Update peak level if current level is higher or if it's time to update
+                if (level > peakLevel || Date.now() - lastUpdate > 200) {
+                    peakLevel = level;
+                    lastUpdate = Date.now();
+                }
+
+                // Calculate and set the peak level bar position again to ensure sync
+                let peakPercentage = ((peakLevel - minDb) / (maxDb - minDb)) * 100;
+                peakPercentage = Math.max(0, Math.min(peakPercentage, 100));
+                peakLevelBar.style.left = `${peakPercentage.toFixed(2)}%`;
+            });
+
+            function getColorForLevel(dB) {
+                if (dB < -10) return 'blue';
+                else if (dB < 0) return 'yellow';
+                else return 'red';
+            }
+
+            // Start the animation frame for peak level decay
+            requestAnimationFrame(updateLevels);
+        });
     </script>
 {% endblock %}

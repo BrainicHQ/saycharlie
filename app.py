@@ -83,23 +83,25 @@ def create_app():
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
         RATE = 44100
-        REFERENCE_PEAK = 300
+        REFERENCE_PEAK = 32767  # Maximum peak value for 16-bit signed integer
         p = pyaudio.PyAudio()  # Define the PyAudio instance
 
         def callback(in_data, frame_count, time_info, status):
             try:
                 ndarray = np.frombuffer(in_data, dtype=np.int16)
-                peak = np.abs(np.max(ndarray) - np.min(ndarray))
+                peak = np.max(np.abs(ndarray))
                 if peak > 0:
-                    db = 20 * math.log10(peak / REFERENCE_PEAK)
+                    # Normalize peak value and calculate dB level
+                    normalized_peak = peak / REFERENCE_PEAK
+                    db = 20 * math.log10(normalized_peak + 1e-40)
                     db = max(-30, db)
-                    db = min(0, db)
+                    db = min(3, db)
                 else:
                     db = -30
                 socketio.emit('audio_level', {'level': db}, namespace='/')
             except Exception as e:
                 print(f"Error processing audio data: {e}")
-            return (None, pyaudio.paContinue)
+            return None, pyaudio.paContinue
 
         # Specify the device index manually if needed
         device_index = None
