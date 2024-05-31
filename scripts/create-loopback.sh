@@ -80,8 +80,28 @@ pcm.!default {
 }
 EOL
 
-# Route the microphone input to the loopback device
-arecord -f cd -D "hw:${mic},0" | aplay -D hw:1,0 >/dev/null 2>&1 </dev/null &
+# Create the systemd service file
+sudo tee /etc/systemd/system/arecord.service > /dev/null <<EOF
+[Unit]
+Description=Continuous arecord to aplay service
+After=sound.target
 
-# Disown the process so it doesn't get killed when the terminal is closed
-disown
+[Service]
+Type=simple
+ExecStart=/usr/bin/arecord -f cd -D "hw:${mic},0" | /usr/bin/aplay -D hw:1,0
+StandardOutput=append:/var/log/arecord_aplay.log
+StandardError=inherit
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd, enable and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable arecord.service
+sudo systemctl start arecord.service
+
+echo "Loopback device created successfully."
+echo "You can now start using saycharlie."
