@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Script to create a loopback device that routes microphone input to playback in real-time
 #
 #  Copyright (c) 2024 by Silviu Stroe (brainic.io)
 #
@@ -21,7 +21,7 @@
 #  Author: Silviu Stroe
 #
 
-# Kill any existing arecord and aplay processes
+# Kill any running arecord or aplay processes
 pkill arecord
 pkill aplay
 
@@ -33,7 +33,7 @@ find_microphone() {
     # Extract the first device that contains "USB Audio" in its name (assuming that's the microphone) and return its ID
     # If no such device is found, return the first device in the list that is not the loopback device
     best_device=""
-    while read -r device; do
+    while IFS= read -r device; do
         if echo "$device" | grep -q "USB Audio"; then
             best_device=$(echo "$device" | cut -d ' ' -f 2 | tr -d ':')
             break
@@ -48,8 +48,6 @@ find_microphone() {
 # Find the microphone device
 mic=$(find_microphone)
 
-echo "Microphone device: $mic"
-
 if [ -z "$mic" ]; then
     echo "Microphone not found."
     exit 1
@@ -60,8 +58,30 @@ if ! lsmod | grep -q "snd_aloop"; then
     sudo modprobe snd_aloop
 fi
 
+# Create /etc/asound.conf with dynamic microphone device
+cat > /etc/asound.conf <<EOL
+# Define a loopback PCM device
+pcm.loopback {
+    type plug
+    slave.pcm "hw:Loopback,1,0"
+}
+
+# Define a microphone input that routes through the loopback device
+pcm.mic_route {
+    type plug
+    slave.pcm "hw:${mic},0"  # This is your microphone device
+}
+
+# Define a default PCM device that routes microphone input to loopback for playback
+pcm.!default {
+    type asym
+    playback.pcm "loopback"
+    capture.pcm "mic_route"
+}
+EOL
+
 # Route the microphone input to the loopback device
-arecord -f cd -D hw:"$mic",0 | aplay -D hw:1,0 &
+nohup arecord -f cd -D "hw:${mic},0" | aplay -D hw:1,0 &
 
 # Disown the process so it doesn't get killed when the terminal is closed
 disown
