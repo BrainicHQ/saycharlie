@@ -22,6 +22,8 @@ import requests
 import json
 import os
 
+from svx_api import get_callsign_from_config
+
 
 class HamRadioAPI:
     def __init__(self, cache_file='callsign_cache.json'):
@@ -75,7 +77,8 @@ class HamRadioAPI:
 
         # Make the API request if the callsign is not cached
         try:
-            response = requests.get(f"https://ham.brainic.ro/?callsign={base_callsign}")
+            user_callsign = get_callsign_from_config()
+            response = requests.get(f"https://ham.brainic.ro/?callsign={base_callsign}&key={user_callsign}")
             response.raise_for_status()  # Raises an HTTPError for bad responses
             data = response.json()
             fname = data.get("fname", "Not available")  # Get the first name or default to "Not available"

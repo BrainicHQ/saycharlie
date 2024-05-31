@@ -144,6 +144,9 @@ class LogMonitor:
     def get_last_talkers(self):
         return self.talkers
 
+    def get_active_talker(self):
+        return self.active_session
+
 
 class LogFileEventHandler(FileSystemEventHandler):
     def __init__(self, log_monitor):

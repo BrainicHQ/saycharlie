@@ -137,6 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     emoji = ''; // Unknown weather
             }
             weatherDisplay.textContent = `${emoji} ${temperature}°C`;
+
+            // set the element title to the weather description
+            weatherDisplay.title = "Weather in " + city + ": " + weatherData.current_weather.temperature +
+                "°C and the wind is blowing at " + weatherData.current_weather.windspeed + " km/h.";
         } catch (error) {
             console.error('Error:', error);
             weatherDisplay.textContent = ''; // Display error message in UI
