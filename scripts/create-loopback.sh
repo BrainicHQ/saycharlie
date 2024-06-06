@@ -71,13 +71,6 @@ pcm.mic_route {
     type plug
     slave.pcm "hw:${mic},0"  # This is your microphone device
 }
-
-# Define a default PCM device that routes microphone input to loopback for playback
-pcm.!default {
-    type asym
-    playback.pcm "loopback"
-    capture.pcm "mic_route"
-}
 EOL
 
 # Create the systemd service file
@@ -87,6 +80,7 @@ Description=Continuous arecord to aplay service
 After=sound.target
 
 [Service]
+User=root
 Type=simple
 ExecStart=/usr/bin/arecord -f cd -D "hw:${mic},0" | /usr/bin/aplay -D hw:1,0
 StandardOutput=append:/var/log/arecord_aplay.log
@@ -105,3 +99,5 @@ sudo systemctl start arecord.service
 
 echo "Loopback device created successfully."
 echo "You can now start using saycharlie."
+
+arecord -f cd -D "hw:${mic},0" | aplay -D hw:1,0 >/dev/null 2>&1 </dev/null &

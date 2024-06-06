@@ -16,7 +16,6 @@
 #  Created on 5/16/24, 8:44 PM
 #  #
 #  Author: Silviu Stroe
-import math
 
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
@@ -31,8 +30,7 @@ from zeroconf import ServiceInfo, Zeroconf
 import socket
 import atexit
 from ham_radio_api import HamRadioAPI
-import pyaudio
-import numpy as np
+from audio import start_audio_monitor
 from dateutil import parser
 
 
@@ -78,67 +76,9 @@ def create_app():
         server="saycharlie.local."
     )
 
-    def start_audio_monitor(stop_event):
-        CHUNK = 1024
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        RATE = 44100
-        REFERENCE_PEAK = 32767  # Maximum peak value for 16-bit signed integer
-        p = pyaudio.PyAudio()  # Define the PyAudio instance
-
-        def callback(in_data, frame_count, time_info, status):
-            try:
-                ndarray = np.frombuffer(in_data, dtype=np.int16)
-                peak = np.max(np.abs(ndarray))
-                if peak > 0:
-                    # Normalize peak value and calculate dB level
-                    normalized_peak = peak / REFERENCE_PEAK
-                    db = 20 * math.log10(normalized_peak + 1e-40)
-                    db = max(-30, db)
-                    db = min(3, db)
-                else:
-                    db = -30
-                socketio.emit('audio_level', {'level': db}, namespace='/')
-            except Exception as e:
-                print(f"Error processing audio data: {e}")
-            return None, pyaudio.paContinue
-
-        # Specify the device index manually if needed
-        device_index = None
-        for i in range(p.get_device_count()):
-            dev_info = p.get_device_info_by_index(i)
-            # get the right loopback device
-            if 'Loopback' in dev_info.get('name'):
-                device_index = i
-                break
-
-        if device_index is None:
-            print("Suitable device not found. Please check your ALSA configuration.")
-            return
-
-        try:
-            stream = p.open(format=FORMAT,
-                            channels=CHANNELS,
-                            rate=RATE,
-                            input=True,
-                            frames_per_buffer=CHUNK,
-                            input_device_index=device_index,
-                            stream_callback=callback)
-
-            print("Starting to monitor audio levels...")
-            stream.start_stream()
-
-            while not stop_event.is_set():
-                socketio.sleep(0.1)  # Keep the main thread active
-        finally:
-            print("Stopping audio monitor...")
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-
     # Setup for audio monitoring
     stop_audio_monitor = Event()  # This will allow us to stop the thread gracefully
-    audio_thread = Thread(target=start_audio_monitor, args=(stop_audio_monitor,))
+    audio_thread = Thread(target=start_audio_monitor, args=(stop_audio_monitor, socketio))
     audio_thread.daemon = True
     audio_thread.start()
 
