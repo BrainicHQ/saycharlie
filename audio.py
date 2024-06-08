@@ -36,7 +36,7 @@ def start_audio_monitor(stop_event, socketio):
     input_device_index = None
     for i in range(p.get_device_count()):
         dev_info = p.get_device_info_by_index(i)
-        if 'dsnoop' in dev_info.get('name'):
+        if 'USB Audio' in dev_info.get('name'):
             input_device_index = i
             break
 
