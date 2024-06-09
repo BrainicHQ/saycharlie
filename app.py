@@ -86,15 +86,15 @@ def create_app():
     def register_service():
         try:
             zeroconf.register_service(service_info)
-            print("Service registered")
+            print("Service zeroconf registered")
         except Exception as e:
-            print(f"Error registering service: {str(e)}")
+            print(f"Error registering service zeroconf: {str(e)}")
 
     # Unregister the service
     def unregister_service():
         zeroconf.unregister_service(service_info)
         zeroconf.close()
-        print("Service unregistered")
+        print("Service zeroconf unregistered")
 
     app.add_url_rule('/files', view_func=file_manager, methods=['GET', 'POST'])
     app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
