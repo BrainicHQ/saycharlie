@@ -42,21 +42,25 @@ def start_audio_monitor(stop_event, socketio):
 
     try:
         while not stop_event.is_set():
-            readable, _, _ = select.select([sock], [], [], 5)  # Check if the socket is ready to read with a 5 second timeout
+            readable, _, _ = select.select([sock], [], [],
+                                           5)  # Check if the socket is ready to read with a 5 second timeout
             if readable:
-                data, addr = sock.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
-                if data:
-                    ndarray = np.frombuffer(data, dtype=np.float32)
-                    peak = np.max(np.abs(ndarray))
-                    db = -30
-                    if peak > 0:
-                        normalized_peak = peak / REFERENCE_PEAK
-                        db = 20 * math.log10(normalized_peak + 1e-40)
-                        db = max(-30, db)
-                        db = min(3, db)
-                    socketio.emit('audio_level', {'level': db}, namespace='/')
-                else:
-                    print("No data received, continuing...")
+                try:
+                    data, addr = sock.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
+                    if data:
+                        ndarray = np.frombuffer(data, dtype=np.float32)
+                        peak = np.max(np.abs(ndarray))
+                        db = -30
+                        if peak > 0:
+                            normalized_peak = peak / REFERENCE_PEAK
+                            db = 20 * math.log10(normalized_peak + 1e-40)
+                            db = max(-30, db)
+                            db = min(3, db)
+                        socketio.emit('audio_level', {'level': db}, namespace='/')
+                    else:
+                        print("Received empty data packet.")
+                except socket.error as e:
+                    print(f"Socket error occurred: {e}")
             else:
                 print("Socket timed out without receiving data, continuing...")
     except Exception as e:
