@@ -1,7 +1,6 @@
 Flask==3.0.3
 Flask-SocketIO==5.3.6
 numpy==1.26.4
-PyAudio==0.2.14
 python-dateutil==2.9.0.post0
 pytz==2024.1
 requests==2.32.2
