@@ -20,6 +20,7 @@
 import socket
 import numpy as np
 import math
+import select
 
 # Constants
 CHUNK = 1024  # Size of each audio chunk to receive (in bytes, assuming each sample is 4 bytes as it's a 32-bit float)
@@ -35,41 +36,31 @@ def start_audio_monitor(stop_event, socketio):
     udp_port = 10000
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((udp_ip, udp_port))
-    sock.settimeout(5)  # Set a timeout of 5 seconds; adjust as needed
+    sock.setblocking(0)  # Set the socket to non-blocking mode
 
     print("UDP socket bound to {}:{}".format(udp_ip, udp_port))
 
     try:
         while not stop_event.is_set():
-            try:
-                # Receive data from the socket
-                data, addr = sock.recvfrom(CHUNK * 4)  # Receive CHUNK samples, each 4 bytes
-                if not data:
-                    break
-
-                # Convert bytes to 32-bit floats
-                ndarray = np.frombuffer(data, dtype=np.float32)
-
-                # Calculate the peak and dB level
-                peak = np.max(np.abs(ndarray))
-                db = -30
-                if peak > 0:
-                    # Normalize peak value and calculate dB level
-                    normalized_peak = peak / REFERENCE_PEAK
-                    db = 20 * math.log10(normalized_peak + 1e-40)
-                    db = max(-30, db)
-                    db = min(3, db)
-
-                # Emit audio level data
-                socketio.emit('audio_level', {'level': db}, namespace='/')
-            except socket.timeout:
-                print("Socket timeout occurred, continuing...")
-                continue
-            except socket.error as e:
-                print(f"Socket error occurred: {e}, continuing...")
-                continue
+            readable, _, _ = select.select([sock], [], [], 5)  # Check if the socket is ready to read with a 5 second timeout
+            if readable:
+                data, addr = sock.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
+                if data:
+                    ndarray = np.frombuffer(data, dtype=np.float32)
+                    peak = np.max(np.abs(ndarray))
+                    db = -30
+                    if peak > 0:
+                        normalized_peak = peak / REFERENCE_PEAK
+                        db = 20 * math.log10(normalized_peak + 1e-40)
+                        db = max(-30, db)
+                        db = min(3, db)
+                    socketio.emit('audio_level', {'level': db}, namespace='/')
+                else:
+                    print("No data received, continuing...")
+            else:
+                print("Socket timed out without receiving data, continuing...")
     except Exception as e:
         print(f"Error processing audio data: {e}")
     finally:
-        print("Stopping audio monitor...")
         sock.close()
+        print("Stopping audio monitor...")
