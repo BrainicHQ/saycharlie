@@ -36,14 +36,14 @@ def start_audio_monitor(stop_event, socketio):
     udp_port = 10000
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((udp_ip, udp_port))
-    sock.setblocking(0)  # Set the socket to non-blocking mode
+    sock.setblocking(False)
 
     print("UDP socket bound to {}:{}".format(udp_ip, udp_port))
 
     try:
         while not stop_event.is_set():
             readable, _, _ = select.select([sock], [], [],
-                                           5)  # Check if the socket is ready to read with a 5 second timeout
+                                           5)  # Check if the socket is ready to read with a 5-second timeout
             if readable:
                 try:
                     data, addr = sock.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
