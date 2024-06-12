@@ -120,6 +120,10 @@
     }
 
     window.addEventListener('click', function (evt) {
+        // Check if the click event is not on the keyboard or input field to prevent accidental clicks
+        if (evt.target.classList.contains('kioskboard-key') || evt.target.classList.contains('js-kioskboard-input')) {
+            return;
+        }
         if (evt.detail === 2) {
             // Start another timer for double click to check for triple click
             this.doubleClickTimer = setTimeout(function () {
