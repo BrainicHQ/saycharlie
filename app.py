@@ -16,7 +16,7 @@
 #  Created on 5/16/24, 8:44 PM
 #  #
 #  Author: Silviu Stroe
-
+import logging
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
@@ -32,6 +32,14 @@ import atexit
 from ham_radio_api import HamRadioAPI
 from audio import start_audio_monitor
 from dateutil import parser
+
+# Set up logging to file
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
+    filename='/tmp/saycharlie.log',
+    filemode='a'  # Use 'a' to append to the file
+)
 
 
 def get_local_ip():
@@ -59,7 +67,7 @@ def create_app():
             # The log file wasn't found, raise an exception with the message
             raise Exception(message)
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logging.error(f"Error: {str(e)}")
         exit(1)
 
     log_monitor = LogMonitor(log_path, socketio)
@@ -86,15 +94,15 @@ def create_app():
     def register_service():
         try:
             zeroconf.register_service(service_info)
-            print("Service zeroconf registered")
+            logging.info("Service zeroconf registered")
         except Exception as e:
-            print(f"Error registering service zeroconf: {str(e)}")
+            logging.info(f"Error registering service zeroconf: {str(e)}")
 
     # Unregister the service
     def unregister_service():
         zeroconf.unregister_service(service_info)
         zeroconf.close()
-        print("Service zeroconf unregistered")
+        logging.info("Service zeroconf unregistered")
 
     app.add_url_rule('/files', view_func=file_manager, methods=['GET', 'POST'])
     app.add_url_rule('/files/edit/<filename>', view_func=edit_file, methods=['POST'])
@@ -157,7 +165,7 @@ def create_app():
                     formatted_date = parsed_date.strftime('%Y-%m-%d %H:%M:%S')
                     talker['stop_date_time'] = formatted_date
                 except ValueError:
-                    print(f"Error parsing date {talker['stop_date_time']}")
+                    logging.error(f"Error parsing date {talker['stop_date_time']}")
                     talker['stop_date_time'] = 'Invalid date format'  # Fallback value if parsing fails
 
             details = api.get_ham_details(talker['callsign'])

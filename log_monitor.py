@@ -20,11 +20,20 @@
 import os
 import re
 import time
+import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dateutil import parser
 from datetime import datetime
 import pytz
+
+# Set up logging to file
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
+    filename='/tmp/saycharlie.log',
+    filemode='a'  # Use 'a' to append to the file
+)
 
 
 def robust_parse_date(date_str):
@@ -54,11 +63,13 @@ def robust_parse_date(date_str):
     try:
         return parser.parse(date_str, fuzzy=True, dayfirst=True, tzinfos=tzinfos)
     except ValueError:
+        logging.error(f"Failed to parse date: {date_str}")
         return None
 
 
 class LogMonitor:
     def __init__(self, log_file, socketio):
+        logging.info(f"Initializing LogMonitor for {log_file}")
         self.active_session = None
         self.talk_start_time = None
         self.observer = None
@@ -70,6 +81,7 @@ class LogMonitor:
         self.read_log()  # Read the log file initially
 
     def start_monitoring(self):
+        logging.info("Starting log monitoring")
         event_handler = LogFileEventHandler(self)
         observer = Observer()
         observer.schedule(event_handler, path=os.path.dirname(self.log_file), recursive=False)
@@ -79,13 +91,16 @@ class LogMonitor:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
+            logging.info("Monitoring interrupted by user")
             self.stop_monitoring()
 
     def stop_monitoring(self):
+        logging.info("Stopping monitoring")
         self.observer.stop()
         self.observer.join()
 
     def read_log(self):
+        logging.info("Reading log file")
         try:
             with open(self.log_file, 'rb') as file:
                 file.seek(self.last_position)
@@ -105,21 +120,22 @@ class LogMonitor:
                     self.parse_line(decoded_line)
                 self.last_position = file.tell()
         except FileNotFoundError:
-            print(f"Log file '{self.log_file}' not found.")
+            logging.error(f"Log file '{self.log_file}' not found.")
 
     def parse_line(self, line):
+        logging.debug("Parsing line from log file")
         pattern = r'^(.+?): ReflectorLogic: Talker (start|stop) on TG #(\d+): (\S+)'
         match = re.match(pattern, line)
         if match:
             date_time_str, action, tg_number, talker_callsign = match.groups()
             date_time = robust_parse_date(date_time_str)
             if not date_time:
-                print("Date format could not be parsed:", date_time_str)
+                logging.warning(f"Date format could not be parsed: {date_time_str}")
                 return  # Exit if the date cannot be parsed
             formatted_date_time = date_time.isoformat()  # Format for both internal use and display
 
             if action == "start":
-                # Handling start action
+                logging.info(f"Session started: {talker_callsign} on TG #{tg_number}")
                 self.active_session = {
                     'start_date_time': formatted_date_time,
                     'tg_number': tg_number,
@@ -127,7 +143,7 @@ class LogMonitor:
                 }
                 self.socketio.emit('update_last_talker', self.active_session, namespace='/')
             elif action == "stop" and self.active_session:
-                # Handling stop action
+                logging.info(f"Session stopped: {talker_callsign} on TG #{tg_number}")
                 talker_start_time = datetime.fromisoformat(self.active_session['start_date_time']).timestamp()
                 talker_stop_time = datetime.fromisoformat(formatted_date_time).timestamp()
                 duration = talker_stop_time - talker_start_time  # in seconds
@@ -154,6 +170,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.log_monitor = log_monitor
 
     def on_modified(self, event):
+        logging.info(f"Detected modification in: {event.src_path}")
         monitor_path = os.path.abspath(self.log_monitor.log_file)
         if event.src_path == monitor_path:
             self.log_monitor.read_log()

@@ -21,6 +21,15 @@ import socket
 import numpy as np
 import math
 import select
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
+    filename='/tmp/saycharlie.log',
+    filemode='a'  # Use 'a' to append to the file
+)
 
 # Constants
 CHUNK = 1024  # Size of each audio chunk to receive (in bytes, assuming each sample is 4 bytes as it's a 32-bit float)
@@ -38,7 +47,7 @@ def start_audio_monitor(stop_event, socketio):
     sock.bind((udp_ip, udp_port))
     sock.setblocking(False)
 
-    print("UDP socket bound to {}:{}".format(udp_ip, udp_port))
+    logging.info("UDP socket bound to %s:%d", udp_ip, udp_port)
 
     try:
         while not stop_event.is_set():
@@ -57,14 +66,15 @@ def start_audio_monitor(stop_event, socketio):
                             db = max(-30, db)
                             db = min(3, db)
                         socketio.emit('audio_level', {'level': db}, namespace='/')
+                        logging.debug("Audio level emitted: %f dB", db)
                     else:
-                        print("Received empty data packet.")
+                        logging.warning("Received empty data packet.")
                 except socket.error as e:
-                    print(f"Socket error occurred: {e}")
+                    logging.error("Socket error occurred: %s", e)
             else:
-                print("Socket timed out without receiving data, continuing...")
+                logging.info("Socket timed out without receiving data, continuing...")
     except Exception as e:
-        print(f"Error processing audio data: {e}")
+        logging.critical("Error processing audio data: %s", e)
     finally:
         sock.close()
-        print("Stopping audio monitor...")
+        logging.info("Stopping audio monitor...")

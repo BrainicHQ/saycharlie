@@ -27,8 +27,13 @@ import socket
 import ipaddress
 from os import access, R_OK
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+# Set up logging to file
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
+    filename='/tmp/saycharlie.log',
+    filemode='a'  # Use 'a' to append to the file
+)
 
 path = os.environ.get('PATH')
 os.environ['PATH'] = path + ':/bin:/usr/bin'
