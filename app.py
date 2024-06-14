@@ -35,7 +35,7 @@ from dateutil import parser
 
 # Set up logging to file
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
     filename='/tmp/saycharlie.log',
     filemode='a'  # Use 'a' to append to the file
