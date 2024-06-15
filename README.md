@@ -102,6 +102,14 @@ cd saycharlie && git pull && sudo systemctl restart saycharlie
 After installation, access the dashboard via http://saycharlie:8337 or http://localhost:8337 to begin managing and
 interacting with your SVXLink service.
 
+## Logging
+
+The application logs are stored in the `/tmp/saycharlie.log` directory. To view the logs, use the following command:
+
+```bash
+tail -f /tmp/saycharlie.log
+```
+
 ## Contributing
 
 The project is open-source, created and maintained by [**Silviu Stroe YO6SAY**](https://brainic.io/?utm=saycharliegit).
