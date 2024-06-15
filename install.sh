@@ -33,18 +33,18 @@ fi
 echo "Starting the installation of the saycharlie SVX Dashboard..."
 
 install_python_packages() {
-    # Install Python 3, pip, and python3-venv if they are not already installed
+    # Install Python 3, pip, python3-venv, python3-dev, and libopenblas-dev if they are not already installed
     if command -v apt-get &>/dev/null; then
         apt-get update
-        apt-get install -y python3 python3-pip python3-venv python3-dev || { echo "apt-get command failed"; exit 1; }
+        apt-get install -y python3 python3-pip python3-venv python3-dev libopenblas-dev || { echo "apt-get command failed"; exit 1; }
     elif command -v dnf &>/dev/null; then
-        dnf install -y python3 python3-pip python3-venv python3-devel || { echo "dnf command failed"; exit 1; }
+        dnf install -y python3 python3-pip python3-venv python3-devel openblas-devel || { echo "dnf command failed"; exit 1; }
     elif command -v pacman &>/dev/null; then
-        pacman -Sy --noconfirm python python-pip python-virtualenv base-devel || { echo "pacman command failed"; exit 1; }
+        pacman -Sy --noconfirm python python-pip python-virtualenv base-devel openblas || { echo "pacman command failed"; exit 1; }
     elif command -v yum &>/dev/null; then
-        yum install -y python3 python3-pip python3-venv python3-devel || { echo "yum command failed"; exit 1; }
+        yum install -y python3 python3-pip python3-venv python3-devel openblas-devel || { echo "yum command failed"; exit 1; }
     elif command -v zypper &>/dev/null; then
-        zypper install -y python3 python3-pip python3-venv python3-devel || { echo "zypper command failed"; exit 1; }
+        zypper install -y python3 python3-pip python3-venv python3-devel openblas-devel || { echo "zypper command failed"; exit 1; }
     else
         echo "Unsupported package manager. Please install Python packages manually."
         exit 1
