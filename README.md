@@ -39,6 +39,8 @@ interactions and ensures efficient management of the SVXLink services.
   columns, and changing the application background.
 - **Comprehensive Settings Management**: Manage settings and categories to adapt the dashboard to specific needs and
   preferences.
+- **VU Meter**: Displays the volume unit meter for the audio input, providing a visual representation of the audio
+  signal strength.
 
 ## Getting Started
 
@@ -49,11 +51,43 @@ interactions and ensures efficient management of the SVXLink services.
 
 ### Installation
 
-To install saycharlie, run the following command:
+#### Clone the repository
 
 ```bash
-git clone https://github.com/BrainicHQ/saycharlie.git && cd saycharlie && sudo chmod +x install.sh && sudo ./install.sh
+git clone https://github.com/BrainicHQ/saycharlie.git
 ```
+
+#### Change directory
+
+```bash
+cd saycharlie
+```
+
+#### Make the install script executable
+
+```bash
+sudo chmod +x install.sh
+```
+
+#### Run the install script
+
+```bash
+sudo ./install.sh
+```
+
+### Enabling the SVXLink raw audio stream for VU Meter support
+
+To enable your VU Meter to display audio signal strength, you must enable the raw audio stream in the SVXLink
+configuration. Locate the SVXLink configuration file and add the following line under the Rx (microphone) block:
+
+```conf
+[Rx...]
+...
+RAW_AUDIO_UDP_DEST=127.0.0.1:10000
+...
+```
+
+After adding the line, restart your SVXLink service. The VU Meter should now display the audio signal strength.
 
 ### Updating
 
@@ -85,6 +119,6 @@ repository.
 
 ## Acknowledgements
 
-We would like to express our gratitude to the following contributor for their support and contributions to the project:
+We would like to express our gratitude to the following contributors for their support and contributions to the project:
 
 - [Michael Gross (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
