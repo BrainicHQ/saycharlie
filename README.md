@@ -39,8 +39,8 @@ interactions and ensures efficient management of the SVXLink services.
   columns, and changing the application background.
 - **Comprehensive Settings Management**: Manage settings and categories to adapt the dashboard to specific needs and
   preferences.
-- **VU Meter**: Displays the volume unit meter for the audio input, providing a visual representation of the audio
-  signal strength.
+- **VU Meter**: Displays the volume unit meter for the both input and output audio signals, providing a visual
+  representation of the audio signal strength.
 
 ## Getting Started
 
