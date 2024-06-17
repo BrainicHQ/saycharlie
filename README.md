@@ -77,14 +77,19 @@ sudo ./install.sh
 
 ### Enabling the SVXLink raw audio stream for VU Meter support
 
-To enable your VU Meter to display audio signal strength, you must enable the raw audio stream in the SVXLink
-configuration. Locate the SVXLink configuration file and add the following line under the Rx (microphone) block:
+To enable the VU Meter to display audio signal strength, you must enable the raw audio stream in the SVXLink
+configuration. Locate the SVXLink configuration file and add the following line under the Rx (microphone) block and Tx
+(speaker) block:
 
 ```conf
 [Rx...]
 ...
 RAW_AUDIO_UDP_DEST=127.0.0.1:10000
 ...
+
+[Tx...]
+...
+RAW_AUDIO_UDP_DEST=127.0.0.1:10001
 ```
 
 After adding the line, restart your SVXLink service. The VU Meter should now display the audio signal strength.
