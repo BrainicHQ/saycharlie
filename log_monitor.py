@@ -170,7 +170,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.log_monitor = log_monitor
 
     def on_modified(self, event):
-        logging.info(f"Detected modification in: {event.src_path}")
+        logging.debug(f"Detected modification in: {event.src_path}")
         monitor_path = os.path.abspath(self.log_monitor.log_file)
         if event.src_path == monitor_path:
             self.log_monitor.read_log()
