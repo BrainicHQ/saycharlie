@@ -40,46 +40,47 @@ REFERENCE_PEAK = 1.0  # Maximum peak value for 32-bit float audio
 
 
 def start_audio_monitor(stop_event, socketio):
-    # Setting up the UDP sockets
+    # Setting up the first UDP socket on port 10000
     udp_ip = '127.0.0.1'
-    udp_ports = [10000, 10001]
-    sockets = []
+    udp_port = 10000
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((udp_ip, udp_port))
+    sock.setblocking(False)
 
-    for udp_port in udp_ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((udp_ip, udp_port))
-        sock.setblocking(False)
-        sockets.append(sock)
-        logging.info("UDP socket bound to %s:%d", udp_ip, udp_port)
+    # Setting up the second UDP socket on port 10001
+    udp_port2 = 10001
+    sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock2.bind((udp_ip, udp_port2))
+    sock2.setblocking(False)
+
+    logging.info("UDP sockets bound to %s:%d and %s:%d", udp_ip, udp_port, udp_ip, udp_port2)
 
     try:
         while not stop_event.is_set():
-            readable, _, _ = select.select(sockets, [], [],
-                                           5)  # Check if any socket is ready to read with a 5-second timeout
-            if readable:
-                for sock in readable:
-                    try:
-                        data, addr = sock.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
-                        if data:
-                            ndarray = np.frombuffer(data, dtype=np.float32)
-                            peak = np.max(np.abs(ndarray))
-                            db = -30
-                            if peak > 0:
-                                normalized_peak = peak / REFERENCE_PEAK
-                                db = 20 * math.log10(normalized_peak + 1e-40)
-                                db = max(-30, db)
-                                db = min(3, db)
-                            socketio.emit('audio_level', {'level': db}, namespace='/')
-                            logging.debug("Audio level emitted: %f dB", db)
-                        else:
-                            logging.warning("Received empty data packet.")
-                    except socket.error as e:
-                        logging.error("Socket error occurred: %s", e)
+            readable, _, _ = select.select([sock, sock2], [], [], 5)  # Modified to check both sockets
+            for s in readable:
+                try:
+                    data, addr = s.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
+                    if data:
+                        ndarray = np.frombuffer(data, dtype=np.float32)
+                        peak = np.max(np.abs(ndarray))
+                        db = -30
+                        if peak > 0:
+                            normalized_peak = peak / REFERENCE_PEAK
+                            db = 20 * math.log10(normalized_peak + 1e-40)
+                            db = max(-30, db)
+                            db = min(3, db)
+                        socketio.emit('audio_level', {'level': db}, namespace='/')
+                        logging.debug("Audio level emitted from %s: %f dB", addr, db)
+                    else:
+                        logging.warning("Received empty data packet from %s.", addr)
+                except socket.error as e:
+                    logging.error("Socket error occurred: %s", e)
             else:
-                logging.info("Sockets timed out without receiving data, continuing...")
+                logging.info("Socket timed out without receiving data, continuing...")
     except Exception as e:
         logging.critical("Error processing audio data: %s", e)
     finally:
-        for sock in sockets:
-            sock.close()
+        sock.close()
+        sock2.close()
         logging.info("Stopping audio monitor...")
