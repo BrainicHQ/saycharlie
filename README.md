@@ -41,6 +41,8 @@ interactions and ensures efficient management of the SVXLink services.
   preferences.
 - **VU Meter**: Displays the volume unit meter for the both input and output audio signals, providing a visual
   representation of the audio signal strength.
+- **Update System**: Allows users to update the application with a simple button click, ensuring the latest features and
+  improvements are always available.
 
 ## Getting Started
 
