@@ -125,7 +125,7 @@ tail -f /tmp/saycharlie.log
 
 ## Contributing
 
-The project is open-source, created and maintained by [**Silviu Stroe YO6SAY**](https://brainic.io/?utm=saycharliegit).
+The project is open-source, created and maintained by [**Silviu Stroe YO6SAY**](https://brainic.io/?utm_source=saycharliegit).
 We welcome contributions from the community, whether they are feature requests, bug fixes, or improvements to
 documentation.
 
