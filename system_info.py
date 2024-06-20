@@ -20,6 +20,8 @@
 import psutil
 import platform
 from datetime import datetime
+import socket
+import requests
 
 
 def get_cpu_temperature():
@@ -71,6 +73,25 @@ def get_file_system_info():
     return file_system_info
 
 
+def get_current_ips():
+    """Get the current LAN IP address and the external IP of the system.
+    Returns:
+        tuple: A tuple containing the LAN IP address of the machine and the external IP.
+    """
+    try:
+        # Create a temporary socket to determine the current LAN IP address
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))  # Use Google's DNS server to determine the LAN IP
+            lan_ip = s.getsockname()[0]  # Get the local IP address assigned to the connection
+
+        # Get external IP address using an external API
+        external_ip = requests.get('https://checkip.amazonaws.com').text.strip()
+
+        return lan_ip, external_ip
+    except Exception as e:
+        return f"Error retrieving IP addresses: {e}"
+
+
 def get_system_info():
     system_info = {
         'System': f"{platform.node()}",
@@ -112,6 +133,9 @@ def get_system_info():
             "1_min": psutil.getloadavg()[0],
             "5_min": psutil.getloadavg()[1],
             "15_min": psutil.getloadavg()[2]
-        }
+        },
+        'Internal IP Address': get_current_ips()[0],
+        'External IP Address': get_current_ips()[1]
+
     }
     return system_info
