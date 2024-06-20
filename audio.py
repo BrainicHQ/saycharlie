@@ -32,11 +32,32 @@ logging.basicConfig(
 )
 
 # Constants
-CHUNK = 1024  # Size of each audio chunk to receive (in bytes, assuming each sample is 4 bytes as it's a 32-bit float)
-FORMAT = 'f'  # Format of each sample (32-bit float)
-CHANNELS = 1
-RATE = 44100
-REFERENCE_PEAK = 1.0  # Maximum peak value for 32-bit float audio
+CHUNK = 2048  # Adjust the chunk size to handle more samples per batch
+SAMPLE_SIZE = 4  # Each sample is a 32-bit float, hence 4 bytes
+GROUP_SIZE = 50  # Number of samples per group for LMS calculation
+
+# dB range for front-end display
+MIN_DB = -30
+MAX_DB = 3
+
+
+def calculate_lms(data):
+    """Calculate the Log-Mean-Square (LMS) of the given data."""
+    squares = np.square(data)
+    mean_squares = np.mean(squares)
+    lms = np.sqrt(mean_squares)
+    return lms
+
+
+def db_scale(lms):
+    """Convert LMS value to a dB scale clamped within a specified range."""
+    # dB value before clamping
+    if lms > 0:
+        db = 20 * math.log10(lms + 1e-40)  # Prevent log(0) error
+    else:
+        db = MIN_DB
+    # Clamping to -30 to 3 dB range
+    return max(MIN_DB, min(MAX_DB, db))
 
 
 def start_audio_monitor(stop_event, socketio):
@@ -57,27 +78,24 @@ def start_audio_monitor(stop_event, socketio):
 
     try:
         while not stop_event.is_set():
-            readable, _, _ = select.select([sock, sock2], [], [], 5)  # Modified to check both sockets
+            readable, _, _ = select.select([sock, sock2], [], [], 5)
             for s in readable:
-                try:
-                    data, addr = s.recvfrom(CHUNK * 4)  # Attempt to receive CHUNK samples, each 4 bytes
-                    if data:
-                        ndarray = np.frombuffer(data, dtype=np.float32)
-                        peak = np.max(np.abs(ndarray))
-                        db = -30
-                        if peak > 0:
-                            normalized_peak = peak / REFERENCE_PEAK
-                            db = 20 * math.log10(normalized_peak + 1e-40)
-                            db = max(-30, db)
-                            db = min(3, db)
-                        socketio.emit('audio_level', {'level': db}, namespace='/')
-                        logging.debug("Audio level emitted from %s: %f dB", addr, db)
-                    else:
-                        logging.warning("Received empty data packet from %s.", addr)
-                except socket.error as e:
-                    logging.error("Socket error occurred: %s", e)
-            else:
-                logging.debug("Socket timed out without receiving data, continuing...")
+                data, addr = s.recvfrom(CHUNK * SAMPLE_SIZE)
+                if data:
+                    samples = np.frombuffer(data, dtype=np.float32)
+                    max_lms = float('-inf')
+                    for start in range(0, len(samples), GROUP_SIZE):
+                        group = samples[start:start + GROUP_SIZE]
+                        if len(group) == GROUP_SIZE:
+                            lms = calculate_lms(group)
+                            db = db_scale(lms)
+                            max_lms = max(max_lms, db)  # Track the max dB value as adjusted
+                    logging.info("Max dB from %s: %f dB", addr, max_lms)
+                    socketio.emit('audio_level', {'level': max_lms}, namespace='/')  # Emit the max dB value
+                else:
+                    logging.warning("Received empty data packet from %s.", addr)
+    except socket.error as e:
+        logging.error("Socket error occurred: %s", e)
     except Exception as e:
         logging.critical("Error processing audio data: %s", e)
     finally:
