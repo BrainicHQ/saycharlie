@@ -43,6 +43,12 @@ interactions and ensures efficient management of the SVXLink services.
   representation of the audio signal strength.
 - **Update System**: Allows users to update the application with a simple button click, ensuring the latest features and
   improvements are always available.
+- **Weather Information**: Provides real-time weather information for the user's IP address location, ensuring users
+  stay informed.
+- **Double-click to make the dashboard full screen**: Double-click anywhere on the dashboard to make it full screen,
+  providing a more immersive experience.
+- **Triple-click to show a hidden menu**: Triple-click anywhere on the dashboard to reveal a hidden menu, providing
+  system reboot, shutdown, and update options.
 
 ## Getting Started
 
