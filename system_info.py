@@ -54,6 +54,11 @@ def get_fans_speed():
 
 def get_system_info():
     system_info = {
+        'System': f"{psutil.users()[0].name}@{psutil.users()[0].host}",
+        'OS': f"{psutil.users()[0].terminal} {psutil.users()[0].host}",
+        'Kernel': f"{psutil.users()[0].host} {psutil.users()[0].host}",
+        'Boot Time': psutil.boot_time(),
+        'Uptime': psutil.uptime(),
         'CPU Temperature': get_cpu_temperature(),
         'CPU Usage': f"{psutil.cpu_percent(interval=1)}%",
         'CPU Times': {
