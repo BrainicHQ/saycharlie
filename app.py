@@ -33,6 +33,8 @@ from ham_radio_api import HamRadioAPI
 from audio import start_audio_monitor
 from dateutil import parser
 
+from system_info import get_system_info
+
 # Set up logging to file
 logging.basicConfig(
     level=logging.INFO,
@@ -243,6 +245,10 @@ def create_app():
     @app.route('/api/update_app', methods=['POST'])
     def update_app_route():
         return update_app()
+
+    @app.route('/api/system-info', methods=['GET'])
+    def get_system_info_route():
+        return jsonify(get_system_info()), 200
 
     # Define routes
     @app.route('/')

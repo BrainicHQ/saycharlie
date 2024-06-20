@@ -90,9 +90,12 @@
     </button>
     <!-- System Update Button -->
     <button onclick="updateApp()" class="bg-green-500 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline active:scale-95 active:shadow-inner transition duration-300 ease-in-out">
-      ⬆️ Update saycharlie to latest version
+      ⬆️ Update to latest version
     </button>
-   </div>
+  </div>
+  <div id="systemInfo" class="p-4 overflow-auto max-h-64">
+    <!-- System information will be loaded here -->
+  </div>
 `);
 
     async function sendSystemCommand(apiEndpoint, successMessage, errorMessage) {
@@ -124,8 +127,7 @@
         sendSystemCommand('/api/system_shutdown', 'System turned off successfully', 'Failed to turn off system');
     }
 
-    function updateApp()
-    {
+    function updateApp() {
         sendSystemCommand('/api/update_app', 'App update done successfully', 'Failed to update app');
         // Reload the page
         location.reload();
@@ -145,6 +147,7 @@
             // Clear the double click timer
             clearTimeout(this.doubleClickTimer);
             systemOptionsModal.open();
+            getSystemInfo();
         }
     });
 
@@ -161,6 +164,41 @@
             }
         }
     }
+
+    async function getSystemInfo() {
+        try {
+            const response = await fetch('/api/system-info');
+            if (!response.ok) {
+                console.error('Failed to fetch system info:', response.statusText);
+                return;
+            }
+
+            const data = await response.json();
+            const systemInfo = document.getElementById('systemInfo');
+            systemInfo.innerHTML = '';  // Clear previous contents
+
+            let contentHTML = '';
+            for (const [key, value] of Object.entries(data)) {
+                if (typeof value === 'object') {
+                    contentHTML += `
+                    <div class="mb-2">
+                        <button onclick="this.nextElementSibling.classList.toggle('hidden');" class="text-blue-500 hover:text-blue-700 focus:outline-none">
+                            <strong>${key}:</strong>
+                        </button>
+                        <pre class="hidden bg-gray-100 p-2">${JSON.stringify(value, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    contentHTML += `<p class="mb-1"><strong>${key}:</strong> ${value}</p>`;
+                }
+            }
+
+            systemInfo.innerHTML = contentHTML;
+
+        } catch (error) {
+            console.error('Network error:', error);
+        }
+    }
+
 </script>
 </body>
 </html>
