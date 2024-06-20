@@ -127,6 +127,8 @@
     function updateApp()
     {
         sendSystemCommand('/api/update_app', 'App update done successfully', 'Failed to update app');
+        // Reload the page
+        location.reload();
     }
 
     window.addEventListener('click', function (evt) {
