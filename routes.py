@@ -26,6 +26,7 @@ from config import load_settings, save_settings
 import urllib.parse
 import os
 import logging
+from threading import Thread
 
 from svx_api import get_active_profile
 
@@ -285,6 +286,13 @@ def system_shutdown():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+def async_restart_service():
+    restart_result = subprocess.run(['sudo', 'systemctl', 'restart', 'saycharlie.service'], capture_output=True,
+                                    text=True)
+    if restart_result.returncode != 0:
+        logging.error(f"Restart service error: {restart_result.stderr}")
+
+
 def update_app():
     try:
         # Stash local changes
@@ -299,14 +307,11 @@ def update_app():
             logging.error(f"Pull error: {pull_result.stderr}")
             return jsonify({"success": False, "message": "Failed to pull updates."}), 500
 
-        # Restart the service
-        restart_result = subprocess.run(['sudo', 'systemctl', 'restart', 'saycharlie.service'], capture_output=True,
-                                        text=True)
-        if restart_result.returncode != 0:
-            logging.error(f"Restart service error: {restart_result.stderr}")
-            return jsonify({"success": False, "message": "Failed to restart service."}), 500
+        # Restart the service asynchronously
+        restart_thread = Thread(target=async_restart_service)
+        restart_thread.start()
 
-        return jsonify({"success": True, "message": "App updated and restarted successfully."}), 200
+        return jsonify({"success": True, "message": "App updated and restart initiated."}), 200
 
     except Exception as e:
         logging.error(f"An unexpected error occurred: {str(e)}")
