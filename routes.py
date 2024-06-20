@@ -307,6 +307,14 @@ def update_app():
             logging.error(f"Pull error: {pull_result.stderr}")
             return jsonify({"success": False, "message": "Failed to pull updates."}), 500
 
+        # Check if requirements.txt was updated using git diff
+        diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD@{1}', 'HEAD'], capture_output=True, text=True)
+        if 'requirements.txt' in diff_result.stdout:
+            install_result = subprocess.run(['pip', 'install', '-r', 'requirements.txt'], capture_output=True, text=True)
+            if install_result.returncode != 0:
+                logging.error(f"Dependency installation error: {install_result.stderr}")
+                return jsonify({"success": False, "message": "Failed to update dependencies."}), 500
+
         # Restart the service asynchronously
         restart_thread = Thread(target=async_restart_service)
         restart_thread.start()

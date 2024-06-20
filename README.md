@@ -49,6 +49,8 @@ interactions and ensures efficient management of the SVXLink services.
   providing a more immersive experience.
 - **Triple-click to show a hidden menu**: Triple-click anywhere on the dashboard to reveal a hidden menu, providing
   system reboot, shutdown, and update options.
+- **System Information**: Displays system information, including the operating system, kernel version, and CPU
+  information, ensuring users have access to essential data.
 
 ## Getting Started
 
