@@ -21,7 +21,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name, \
-    get_categories_buttons, system_reboot, system_shutdown
+    get_categories_buttons, system_reboot, system_shutdown, update_app
 from threading import Thread, Event
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
@@ -239,6 +239,10 @@ def create_app():
     @app.route('/api/system_shutdown', methods=['POST'])
     def system_shutdown_route():
         return system_shutdown()
+
+    @app.route('/api/update_app', methods=['POST'])
+    def update_app_route():
+        return update_app()
 
     # Define routes
     @app.route('/')

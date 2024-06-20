@@ -25,11 +25,20 @@ from werkzeug.utils import secure_filename
 from config import load_settings, save_settings
 import urllib.parse
 import os
+import logging
 
 from svx_api import get_active_profile
 
 UPLOAD_FOLDER = 'profile-uploads/'
 ALLOWED_EXTENSIONS = {'conf'}
+
+# Set up logging to file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(module)s - %(levelname)s: %(message)s',
+    filename='/tmp/saycharlie.log',
+    filemode='a'  # Use 'a' to append to the file
+)
 
 
 def allowed_file(filename):
@@ -273,4 +282,32 @@ def system_shutdown():
         else:
             return jsonify({"success": False, "message": result.stderr}), 500
     except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+def update_app():
+    try:
+        # Stash local changes
+        stash_result = subprocess.run(['git', 'stash'], capture_output=True, text=True)
+        if stash_result.returncode != 0:
+            logging.error(f"Stash error: {stash_result.stderr}")
+            return jsonify({"success": False, "message": "Failed to stash local changes."}), 500
+
+        # Pull latest changes from remote
+        pull_result = subprocess.run(['git', 'pull'], capture_output=True, text=True)
+        if pull_result.returncode != 0:
+            logging.error(f"Pull error: {pull_result.stderr}")
+            return jsonify({"success": False, "message": "Failed to pull updates."}), 500
+
+        # Restart the service
+        restart_result = subprocess.run(['sudo', 'systemctl', 'restart', 'saycharlie.service'], capture_output=True,
+                                        text=True)
+        if restart_result.returncode != 0:
+            logging.error(f"Restart service error: {restart_result.stderr}")
+            return jsonify({"success": False, "message": "Failed to restart service."}), 500
+
+        return jsonify({"success": True, "message": "App updated and restarted successfully."}), 200
+
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500

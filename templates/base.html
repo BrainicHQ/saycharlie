@@ -88,6 +88,10 @@
     <button onclick="systemShutdown()" class="bg-red-500 hover:bg-red-700 active:bg-red-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline active:scale-95 active:shadow-inner transition duration-300 ease-in-out">
       ⏻ System Turn Off
     </button>
+    <!-- System Update Button -->
+    <button onclick="updateApp()" class="bg-green-500 hover:bg-green-700 active:bg-green-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline active:scale-95 active:shadow-inner transition duration-300 ease-in-out">
+      ⬆️ Update saycharlie to latest version
+    </button>
    </div>
 `);
 
@@ -118,6 +122,11 @@
 
     function systemShutdown() {
         sendSystemCommand('/api/system_shutdown', 'System turned off successfully', 'Failed to turn off system');
+    }
+
+    function updateApp()
+    {
+        sendSystemCommand('/api/update_app', 'App update started successfully', 'Failed to start app update');
     }
 
     window.addEventListener('click', function (evt) {
