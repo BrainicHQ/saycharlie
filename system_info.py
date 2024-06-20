@@ -21,10 +21,24 @@ import psutil
 
 
 def get_cpu_temperature():
+    cpu_temperature = {}
     try:
-        return f"{psutil.sensors_temperatures()['coretemp'][0].current:.1f}°C"
+        # Fetch all available temperature sensors, default is Celsius
+        sensors = psutil.sensors_temperatures()
+        if not sensors:
+            return {"Error": "No temperature sensors found"}
+
+        # Process each sensor's readings
+        for hw, temps in sensors.items():
+            if temps:  # Ensure there are readings
+                # Record the highest temperature from each sensor
+                max_temp = max(temp.current for temp in temps)
+                cpu_temperature[hw] = f"{max_temp:.1f}°C"
     except Exception as e:
-        return f"Not available: {e}"
+        # Return a dictionary with a detailed error message
+        return {"Error": f"Not available due to: {str(e)}"}
+
+    return cpu_temperature
 
 
 def get_fans_speed():
