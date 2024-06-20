@@ -18,6 +18,8 @@
 #  Author: Silviu Stroe
 
 import psutil
+import platform
+from datetime import datetime
 
 
 def get_cpu_temperature():
@@ -52,15 +54,32 @@ def get_fans_speed():
     return fans_speed
 
 
+def get_file_system_info():
+    partitions = psutil.disk_partitions()
+    file_system_info = []
+    for partition in partitions:
+        usage = psutil.disk_usage(partition.mountpoint)
+        file_system_info.append({
+            "device": partition.device,
+            "mountpoint": partition.mountpoint,
+            "fstype": partition.fstype,
+            "total": f"{usage.total / (1024 ** 3):.2f} GB",
+            "used": f"{usage.used / (1024 ** 3):.2f} GB",
+            "free": f"{usage.free / (1024 ** 3):.2f} GB",
+            "percent": f"{usage.percent}%"
+        })
+    return file_system_info
+
+
 def get_system_info():
     system_info = {
-        'System': f"{psutil.users()[0].name}@{psutil.users()[0].host}",
-        'OS': f"{psutil.users()[0].terminal} {psutil.users()[0].host}",
-        'Kernel': f"{psutil.users()[0].host} {psutil.users()[0].host}",
-        'Boot Time': psutil.boot_time(),
-        'Uptime': psutil.uptime(),
+        'System': f"{platform.node()}",
+        'OS': f"{platform.system()} {platform.release()}",
+        'Kernel': f"{platform.version()}",
+        'Boot Time': datetime.fromtimestamp(psutil.boot_time()).strftime('%d-%m-%Y %H:%M:%S'),
         'CPU Temperature': get_cpu_temperature(),
         'CPU Usage': f"{psutil.cpu_percent(interval=1)}%",
+        'File System Information': get_file_system_info(),
         'CPU Times': {
             'user': f"{psutil.cpu_times().user} s",
             'system': f"{psutil.cpu_times().system} s",
