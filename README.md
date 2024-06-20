@@ -106,11 +106,9 @@ After adding the line, restart your SVXLink service. The VU Meter should now dis
 
 ### Updating
 
-To update saycharlie, run the following command:
-
-```bash
-cd saycharlie && git pull && sudo systemctl restart saycharlie
-```
+To update saycharlie, triple-click anywhere on the dashboard to reveal the hidden menu. Click the "Update" button to
+update the application to the latest version. The update process will automatically download the latest version from the
+GitHub repository and install it. After the update is complete, the application will restart automatically.
 
 ## Usage
 
