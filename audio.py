@@ -77,7 +77,7 @@ def start_audio_monitor(stop_event, socketio):
                 except socket.error as e:
                     logging.error("Socket error occurred: %s", e)
             else:
-                logging.info("Socket timed out without receiving data, continuing...")
+                logging.debug("Socket timed out without receiving data, continuing...")
     except Exception as e:
         logging.critical("Error processing audio data: %s", e)
     finally:
