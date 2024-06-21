@@ -67,7 +67,7 @@ def start_audio_monitor(stop_event, socketio):
                         peak = np.max(np.abs(ndarray))
                         db = 20 * math.log10(peak + 1e-40) if peak > 0 else -30
                         db = max(-30, min(3, db))
-                        socketio.emit('audio_level_rx', {'level': db}, namespace='/')
+                        socketio.emit('audio_level_tx', {'level': db}, namespace='/')
                         logging.debug("Audio level emitted from %s: %f dB", addr, db)
                 elif s is sock2:
                     data, addr = s.recvfrom(CHUNK * BYTES_PER_SAMPLE * CHANNELS)  # Int16 stereo data handling
@@ -76,7 +76,7 @@ def start_audio_monitor(stop_event, socketio):
                         peak = np.max(np.abs(ndarray))
                         db = 20 * math.log10(peak / REFERENCE_PEAK + 1e-40)
                         db = max(-30, min(3, db))
-                        socketio.emit('audio_level_tx', {'level': db}, namespace='/')
+                        socketio.emit('audio_level_rx', {'level': db}, namespace='/')
                         logging.debug("Audio level emitted from %s: %f dB", addr, db)
     except Exception as e:
         logging.critical("Error processing audio data: %s", e)
