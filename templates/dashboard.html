@@ -203,10 +203,22 @@
             }
 
         function getColorForLevel(dB) {
-            if (dB < -10) return 'blue';
-            else if (dB < 0) return 'yellow';
-            else return 'red';
-        }
+    if (dB <= -30) {
+        return 'Black'; // Below audible threshold
+    } else if (dB <= -25) {
+        return 'DarkSlateGray'; // Very low, mostly inaudible
+    } else if (dB <= -20) {
+        return 'MediumBlue'; // Low but clearly audible
+    } else if (dB <= -15) {
+        return 'ForestGreen'; // Moderate level, good for clear communication
+    } else if (dB <= -10) {
+        return 'Yellow'; // Ideal operating level, stay cautious
+    } else if (dB < -5) {
+        return 'DarkOrange'; // Approaching high level, caution needed
+    } else {
+        return 'Red'; // Peak or potential overload, risk of distortion
+    }
+}
 
         socket.on('audio_level_rx', function (data) {
             updateLevel(data, volumeLevelRX, peakLevelBarRX, 'RX');
