@@ -15,31 +15,65 @@
 {% endblock %}
 {% block heading %}📁 {{ svx_active_profile }}{% endblock %}
 {% block content %}
-    <div class="grid grid-cols-1 gap-4 mb-4">
-        <div id="volumeMeter" class="relative w-full h-6 bg-gray-300 rounded overflow-hidden">
-            <div class="absolute w-full h-full flex justify-between px-1 text-xs">
-                <span>-30</span>
-                <span>-25</span>
-                <span>-20</span>
-                <span>-15</span>
-                <span>-10</span>
-                <span>-5</span>
-                <span>0</span>
-                <span>3</span>
+    <div class="flex flex-col gap-4 mb-4">
+        <div class="flex items-center gap-1">
+            <span class="text-sm text-gray-500 shrink-0">RX</span>
+            <div class="relative w-full h-6 bg-gray-300 rounded overflow-hidden flex-grow">
+                <div class="absolute w-full h-full flex justify-between px-1 text-xs">
+                    <span>-30</span>
+                    <span>-25</span>
+                    <span>-20</span>
+                    <span>-15</span>
+                    <span>-10</span>
+                    <span>-5</span>
+                    <span>0</span>
+                    <span>3</span>
+                </div>
+                <div class="absolute w-full h-full flex justify-between px-1">
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r-2 border-red-500"></div>
+                </div>
+                <div id="peakLevelRX"
+                     class="absolute bg-yellow-700 opacity-80 h-full w-3 left-0 transition-all duration-100 ease-out"></div>
+                <div id="volumeLevelRX"
+                     class="h-full rounded transition-all duration-100 ease-out bg-transparent"></div>
             </div>
-            <div class="absolute w-full h-full flex justify-between px-1">
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r border-black"></div>
-                <div class="h-full border-r-2 border-red-500"></div>
+        </div>
+        <!-- New TX line -->
+        <div class="flex items-center gap-1">
+            <span class="text-sm text-gray-500 shrink-0">TX</span>
+            <div class="relative w-full h-6 bg-gray-300 rounded overflow-hidden flex-grow">
+                <div class="absolute w-full h-full flex justify-between px-1 text-xs">
+                    <span>-30</span>
+                    <span>-25</span>
+                    <span>-20</span>
+                    <span>-15</span>
+                    <span>-10</span>
+                    <span>-5</span>
+                    <span>0</span>
+                    <span>3</span>
+                </div>
+                <div class="absolute w-full h-full flex justify-between px-1">
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r border-black"></div>
+                    <div class="h-full border-r-2 border-red-500"></div>
+                </div>
+                <div id="peakLevelTX"
+                     class="absolute bg-yellow-700 opacity-80 h-full w-3 left-0 transition-all duration-100 ease-out"></div>
+                <div id="volumeLevelTX"
+                     class="h-full rounded transition-all duration-100 ease-out bg-transparent"></div>
             </div>
-            <div id="peakLevel"
-                 class="absolute bg-yellow-700 opacity-80 h-full w-3 left-0 transition-all duration-100 ease-out"></div>
-            <div id="volumeLevel" class="h-full rounded transition-all duration-100 ease-out bg-transparent"></div>
         </div>
     </div>
     <div class="grid grid-cols-{{ columns }} gap-4">
@@ -127,64 +161,87 @@
     <script src="{{ url_for('static', filename='js/talker.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/keyboard.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let peakLevel = -30; // Initialize peak level at the minimum dB level
-            let lastUpdate = Date.now(); // Track the last update time to manage decay properly
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let peakLevelRX = -30; // Initialize peak level for RX
+        let peakLevelTX = -30; // Initialize peak level for TX
+        let lastUpdateRX = Date.now(); // Track last update time for RX
+        let lastUpdateTX = Date.now(); // Track last update time for TX
 
-            const volumeLevel = document.getElementById('volumeLevel');
-            const peakLevelBar = document.getElementById('peakLevel');
-            const minDb = -30;
-            const maxDb = 3;
+        const volumeLevelRX = document.getElementById('volumeLevelRX');
+        const peakLevelBarRX = document.getElementById('peakLevelRX');
+        const volumeLevelTX = document.getElementById('volumeLevelTX');
+        const peakLevelBarTX = document.getElementById('peakLevelTX');
+        const minDb = -30;
+        const maxDb = 3;
 
-            function updateLevels() {
-                const now = Date.now();
+        function updateLevels() {
+            const now = Date.now();
 
-                // Update peak level decay
-                if (now - lastUpdate > 100) {
-                    peakLevel -= 0.5; // Decay peak level by 1 dB every 100ms
-                    peakLevel = Math.max(peakLevel, minDb);
-                    lastUpdate = now;
-                }
+            // Update peak level decay for RX
+            if (now - lastUpdateRX > 100) {
+                peakLevelRX -= 0.5;
+                peakLevelRX = Math.max(peakLevelRX, minDb);
+                lastUpdateRX = now;
+            }
+            let peakPercentageRX = ((peakLevelRX - minDb) / (maxDb - minDb)) * 100;
+            peakPercentageRX = Math.max(0, Math.min(peakPercentageRX, 100));
+            peakLevelBarRX.style.left = `${peakPercentageRX.toFixed(2)}%`;
 
-                // Calculate and set the peak level bar position
-                let peakPercentage = ((peakLevel - minDb) / (maxDb - minDb)) * 100;
-                peakPercentage = Math.max(0, Math.min(peakPercentage, 100));
-                peakLevelBar.style.left = `${peakPercentage.toFixed(2)}%`;
+            // Update peak level decay for TX
+            if (now - lastUpdateTX > 100) {
+                peakLevelTX -= 0.5;
+                peakLevelTX = Math.max(peakLevelTX, minDb);
+                lastUpdateTX = now;
+            }
+            let peakPercentageTX = ((peakLevelTX - minDb) / (maxDb - minDb)) * 100;
+            peakPercentageTX = Math.max(0, Math.min(peakPercentageTX, 100));
+            peakLevelBarTX.style.left = `${peakPercentageTX.toFixed(2)}%`;
 
                 // Call this function again on the next animation frame
                 requestAnimationFrame(updateLevels);
             }
 
-            socket.on('audio_level', function (data) {
-                const level = parseFloat(data.level); // Parse dB level from backend and ensure it's a number
+        function getColorForLevel(dB) {
+            if (dB < -10) return 'blue';
+            else if (dB < 0) return 'yellow';
+            else return 'red';
+        }
 
-                // Calculate and set the volume level bar width
-                let percentage = ((level - minDb) / (maxDb - minDb)) * 100;
-                percentage = Math.max(0, Math.min(percentage, 100)); // Ensure it stays within 0% and 100%
-                volumeLevel.style.width = `${percentage.toFixed(2)}%`;
-                volumeLevel.style.backgroundColor = getColorForLevel(level);
+        socket.on('audio_level_rx', function (data) {
+            updateLevel(data, volumeLevelRX, peakLevelBarRX, 'RX');
+        });
 
-                // Update peak level if current level is higher or if it's time to update
-                if (level > peakLevel || Date.now() - lastUpdate > 200) {
-                    peakLevel = level;
-                    lastUpdate = Date.now();
+        socket.on('audio_level_tx', function (data) {
+            updateLevel(data, volumeLevelTX, peakLevelBarTX, 'TX');
+        });
+
+        function updateLevel(data, volumeLevel, peakLevelBar, type) {
+            const level = parseFloat(data.level);
+            let percentage = ((level - minDb) / (maxDb - minDb)) * 100;
+            percentage = Math.max(0, Math.min(percentage, 100));
+            volumeLevel.style.width = `${percentage.toFixed(2)}%`;
+            volumeLevel.style.backgroundColor = getColorForLevel(level);
+
+            if (type === 'RX') {
+                if (level > peakLevelRX || Date.now() - lastUpdateRX > 200) {
+                    peakLevelRX = level;
+                    lastUpdateRX = Date.now();
                 }
-
-                // Calculate and set the peak level bar position again to ensure sync
-                let peakPercentage = ((peakLevel - minDb) / (maxDb - minDb)) * 100;
-                peakPercentage = Math.max(0, Math.min(peakPercentage, 100));
-                peakLevelBar.style.left = `${peakPercentage.toFixed(2)}%`;
-            });
-
-            function getColorForLevel(dB) {
-                if (dB < -10) return 'blue';
-                else if (dB < 0) return 'yellow';
-                else return 'red';
+            } else if (type === 'TX') {
+                if (level > peakLevelTX || Date.now() - lastUpdateTX > 200) {
+                    peakLevelTX = level;
+                    lastUpdateTX = Date.now();
+                }
             }
 
-            // Start the animation frame for peak level decay
-            requestAnimationFrame(updateLevels);
-        });
-    </script>
+            let peakPercentage = ((eval(`peakLevel${type}`) - minDb) / (maxDb - minDb)) * 100;
+            peakPercentage = Math.max(0, Math.min(peakPercentage, 100));
+            peakLevelBar.style.left = `${peakPercentage.toFixed(2)}%`;
+        }
+
+        // Start the animation frame for peak level decay
+        requestAnimationFrame(updateLevels);
+    });
+</script>
 {% endblock %}
