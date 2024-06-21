@@ -97,9 +97,30 @@ configuration. Locate the SVXLink configuration file and add the following line 
 RAW_AUDIO_UDP_DEST=127.0.0.1:10000
 ...
 
-[Tx...]
+# Audio stream via UDP for VU Meter
+[TxUDP]
+TYPE=Local
+AUDIO_DEV=udp:127.0.0.1:10001
+CARD_SAMPLE_RATE=48000
+AUDIO_CHANNEL=0
+PTT_TYPE=NONE
+MASTER_GAIN=0
+TX_DELAY=100
+PREEMPHASIS=0
+
 ...
-RAW_AUDIO_UDP_DEST=127.0.0.1:10001
+
+[MultiTx]
+TYPE=Multi
+TRANSMITTERS=Tx1,TxUDP
+
+...
+
+[SimplexLogic]
+TYPE=Simplex
+RX=Rx1
+TX=MultiTx
+
 ```
 
 After adding the line, restart your SVXLink service. The VU Meter should now display the audio signal strength.
@@ -142,4 +163,5 @@ repository.
 
 We would like to express our gratitude to the following contributors for their support and contributions to the project:
 
-- [Michael Gross (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing and feedback.
+- [Michael Gross (DK1AJ)](https://www.qrz.com/db/DK1AJ) for his valuable testing, helping with audio stream setup, and
+  providing feedback.
