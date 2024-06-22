@@ -21,7 +21,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from routes import dashboard, add_button, set_columns, app_background, settings, category, file_manager, edit_file, \
     delete_file, add_talk_group, update_talk_group, delete_talk_group, get_talk_groups_data, get_group_name, \
-    get_categories_buttons, system_reboot, system_shutdown, update_app
+    get_buttons, system_reboot, system_shutdown, update_app, delete_button, update_button
 from threading import Thread, Event
 from log_monitor import LogMonitor
 from svx_api import process_dtmf_request, stop_svxlink_service, restart_svxlink_service, get_svx_profiles, \
@@ -255,13 +255,21 @@ def create_app():
     def index():
         return dashboard()
 
-    @app.route('/add_button', methods=['POST'])
+    @app.route('/api/buttons', methods=['POST'])
     def add_button_route():
         return add_button()
 
-    @app.route('/api/category-buttons', methods=['GET'])
+    @app.route('/api/buttons', methods=['GET'])
     def get_buttons_route():
-        return get_categories_buttons()
+        return get_buttons()
+
+    @app.route('/api/buttons/<uuid:uuid_id>', methods=['PUT'])
+    def update_button_route(uuid_id):
+        return update_button(uuid_id)
+
+    @app.route('/api/buttons/<uuid:uuid_id>', methods=['DELETE'])
+    def delete_button_route(uuid_id):
+        return delete_button(uuid_id)
 
     @app.route('/set_columns', methods=['POST'])
     def set_columns_route():

@@ -112,12 +112,12 @@ def category(category_uuid):
                            )
 
 
-def get_categories_buttons():
+def get_buttons():
     try:
         settings_data = load_settings()  # Assuming this function loads your settings
         # Get all buttons that are categories
-        categories = [button for button in settings_data['buttons'] if button.get('isCategory')]
-        return jsonify(categories), 200
+        buttons = [button for button in settings_data['buttons']]
+        return jsonify(buttons), 200
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -156,6 +156,74 @@ def add_button():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
+
+def update_button(uuid_id):
+    try:
+        settings_data = load_settings()
+        data = request.json
+        buttons = settings_data['buttons']
+        uuid_id_str = str(uuid_id)  # Ensure uuid_id is treated as a string
+
+        # Find the index of the button to update
+        index = next((i for i, button in enumerate(buttons) if button['id'] == uuid_id_str), None)
+        if index is None:
+            return jsonify({"status": "error", "message": "Button not found"}), 404
+
+        new_label = data.get('label', buttons[index]['label'])  # Default to current label if not provided
+        new_color = data.get('color', buttons[index]['color'])  # Default to current color if not provided
+        new_font_color = data.get('font_color',
+                                  buttons[index]['fontColor'])  # Default to current font color if not provided
+        new_category = data.get('category', buttons[index]['category'])  # Default to current category if not provided
+        new_is_category = data.get('isCategory',
+                                   buttons[index]['isCategory'])  # Default to current isCategory if not provided
+        new_action = data.get('action', buttons[index]['action'])  # Default to current action if not provided
+
+        # Update the button's label, color, font color, category, isCategory, and action
+        buttons[index]['label'] = new_label
+        buttons[index]['color'] = new_color
+        buttons[index]['fontColor'] = new_font_color
+        buttons[index]['category'] = new_category
+        buttons[index]['isCategory'] = new_is_category
+        buttons[index]['action'] = new_action
+
+        # If the button is a category, update the category label
+        if new_is_category:
+            category_index = next((i for i, category in enumerate(settings_data.get('categories', [])) if
+                                   category['label'] == buttons[index]['label']), None)
+            if category_index is not None:
+                settings_data['categories'][category_index]['label'] = new_label
+
+        save_settings(settings_data)
+        return jsonify({"status": "success", "message": "Button updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+
+def delete_button(uuid_id):
+    try:
+        settings_data = load_settings()
+        buttons = settings_data['buttons']
+        uuid_id_str = str(uuid_id)
+
+        # Find the index and check if it's a category
+        button_to_delete = next((button for button in buttons if button['id'] == uuid_id_str), None)
+        if button_to_delete is None:
+            return jsonify({"status": "error", "message": "Button not found"}), 404
+
+        if button_to_delete.get('isCategory', False):
+            # It's a category, delete all associated buttons
+            buttons = [button for button in buttons if
+                       button['category'] != uuid_id_str and button['id'] != uuid_id_str]
+        else:
+            # It's not a category, just delete this button
+            buttons = [button for button in buttons if button['id'] != uuid_id_str]
+
+        settings_data['buttons'] = buttons
+        save_settings(settings_data)
+        return jsonify({"status": "success", "message": "Button deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 
 def set_columns():
@@ -310,7 +378,8 @@ def update_app():
         # Check if requirements.txt was updated using git diff
         diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD@{1}', 'HEAD'], capture_output=True, text=True)
         if 'requirements.txt' in diff_result.stdout:
-            install_result = subprocess.run(['pip', 'install', '-r', 'requirements.txt'], capture_output=True, text=True)
+            install_result = subprocess.run(['pip', 'install', '-r', 'requirements.txt'], capture_output=True,
+                                            text=True)
             if install_result.returncode != 0:
                 logging.error(f"Dependency installation error: {install_result.stderr}")
                 return jsonify({"success": False, "message": "Failed to update dependencies."}), 500
