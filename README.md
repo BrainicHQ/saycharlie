@@ -47,7 +47,7 @@ interactions and ensures efficient management of the SVXLink services.
   stay informed.
 - **Double-click to make the dashboard full screen**: Double-click anywhere on the dashboard to make it full screen,
   providing a more immersive experience.
-- **Triple-click to show a hidden menu**: Triple-click anywhere on the dashboard to reveal a hidden menu, providing
+- **Double-click to show a hidden menu**: Double-click on the weather icon to reveal a hidden menu, providing
   system reboot, shutdown, and update options.
 - **System Information**: Displays system information, including the operating system, kernel version, and CPU
   information, ensuring users have access to essential data.
@@ -127,7 +127,7 @@ After adding the line, restart your SVXLink service. The VU Meter should now dis
 
 ### Updating
 
-To update saycharlie, triple-click anywhere on the dashboard to reveal the hidden menu. Click the "Update" button to
+To update saycharlie, double click on the weather icon to reveal the hidden menu. Click the "Update" button to
 update the application to the latest version. The update process will automatically download the latest version from the
 GitHub repository and install it. After the update is complete, the application will restart automatically.
 
