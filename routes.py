@@ -132,7 +132,7 @@ def add_button():
             'id': new_uuid,
             'label': data['label'],
             'color': data['color'],
-            'fontColor': data['font_color'],
+            'fontColor': data['fontColor'],
             'category': data.get('category'),
             'isCategory': data.get('isCategory', False)
         }
@@ -172,7 +172,7 @@ def update_button(uuid_id):
 
         new_label = data.get('label', buttons[index]['label'])  # Default to current label if not provided
         new_color = data.get('color', buttons[index]['color'])  # Default to current color if not provided
-        new_font_color = data.get('font_color',
+        new_font_color = data.get('fontColor',
                                   buttons[index]['fontColor'])  # Default to current font color if not provided
         new_category = data.get('category', buttons[index]['category'])  # Default to current category if not provided
         new_is_category = data.get('isCategory',
