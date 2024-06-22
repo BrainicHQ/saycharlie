@@ -133,22 +133,18 @@
         location.reload();
     }
 
-    window.addEventListener('click', function (evt) {
-        // Check if the click event is not on the keyboard or input field to prevent accidental clicks
-        if (evt.target.classList.contains('kioskboard-key') || evt.target.classList.contains('js-kioskboard-input')) {
+    // on double-click on the weather emoji, open the system options modal
+    document.getElementById('weather-emoji').addEventListener('dblclick', function () {
+        systemOptionsModal.open();
+        getSystemInfo();
+    });
+
+    // on double click anywhere on the page (except the keyboard) or the weather emoji, toggle fullscreen
+    document.addEventListener('dblclick', function (evt) {
+        if (evt.target.id === 'weather-emoji' || evt.target.classList.contains('kioskboard-key') || evt.target.classList.contains('js-kioskboard-input')) {
             return;
         }
-        if (evt.detail === 2) {
-            // Start another timer for double click to check for triple click
-            this.doubleClickTimer = setTimeout(function () {
-                toggleFullScreen();
-            }, 400); // Adjust timing as needed
-        } else if (evt.detail === 3) {
-            // Clear the double click timer
-            clearTimeout(this.doubleClickTimer);
-            systemOptionsModal.open();
-            getSystemInfo();
-        }
+        toggleFullScreen();
     });
 
     function toggleFullScreen() {
