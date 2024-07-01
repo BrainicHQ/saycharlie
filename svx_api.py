@@ -215,7 +215,7 @@ def stop_svxlink_service():
         return True, "SvxLink service is not running."
 
     try:
-        subprocess.run(["systemctl", "stop", "svxlink"], check=True)
+        subprocess.run(["sudo", "systemctl", "stop", "svxlink"], check=True)
         logging.info("SvxLink service stopped successfully.")
         return True, "SvxLink service stopped successfully."
     except subprocess.CalledProcessError as e:
@@ -225,7 +225,7 @@ def stop_svxlink_service():
 
 def restart_svxlink_service():
     try:
-        subprocess.run(["systemctl", "restart", "svxlink"], check=True)
+        subprocess.run(["sudo", "systemctl", "restart", "svxlink"], check=True)
         logging.info("SvxLink service restarted successfully.")
         return True, "SvxLink service restarted successfully."
     except subprocess.CalledProcessError as e:
