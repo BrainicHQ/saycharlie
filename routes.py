@@ -17,6 +17,7 @@
 #  #
 #  Author: Silviu Stroe
 import subprocess
+import time
 import uuid
 
 from flask import request, redirect, render_template, url_for, jsonify
@@ -355,10 +356,11 @@ def system_shutdown():
 
 
 def async_restart_service():
-    restart_result = subprocess.run(['sudo', 'systemctl', 'restart', 'saycharlie.service'], capture_output=True,
-                                    text=True)
-    if restart_result.returncode != 0:
-        logging.error(f"Restart service error: {restart_result.stderr}")
+    try:
+        time.sleep(2)  # Wait for 2 seconds before restarting the service
+        subprocess.run(['sudo', 'systemctl', 'restart', 'saycharlie.service'])
+    except Exception as e:
+        logging.error(f"Failed to restart service: {str(e)}")
 
 
 def update_app():
