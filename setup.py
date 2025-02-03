@@ -39,7 +39,7 @@ setup(
         'pytz==2024.1',
         'requests==2.32.2',
         'watchdog==4.0.1',
-        'Werkzeug==3.0.3',
+        'Werkzeug==3.0.6',
         'zeroconf==0.132.2'
     ],
     python_requires='>=3.6, <4',  # Specify which Python versions are supported
