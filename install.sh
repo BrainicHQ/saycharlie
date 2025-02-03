@@ -197,7 +197,8 @@ setup_systemd_service() {
     cat <<EOF > "${SERVICE_FILE}"
 [Unit]
 Description=saycharlie SVX Dashboard
-After=network.target
+After=network.target svxlink.service
+Requires=svxlink.service
 
 [Service]
 User=${SVXLINK_USER}
