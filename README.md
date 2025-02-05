@@ -7,6 +7,19 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/BrainicHQ/saycharlie)
 ![GitHub code size](https://img.shields.io/github/languages/code-size/BrainicHQ/saycharlie)
 
+---
+
+## 🚨 **Project Status: Archived & Discontinued** 🚨
+
+This project is no longer maintained or actively developed. While the code remains available for use and reference under the GPL v3 license, **no further updates, support, or issue resolutions will be provided**.
+
+However, if you'd like to modify or build upon the project, feel free to fork it and adapt it to your needs—it's all part of the spirit of HAM radio experimentation! 📡
+
+If you're interested in further development, custom features, or professional support, services are available on a **commercial, time & materials (T&M) basis**. 
+
+📩 For business inquiries, please contact **yo6say at proton [dot] me**.
+
+---
 
 <p align="center">
   <img src="/saycharlie-dashboard.jpg" width="400">
